@@ -8,10 +8,7 @@ through **Tools > Scene Vault**.
 
 ## Status
 
-Version 0.1.0 is a first implementation. The source package is not an installable
-Windows DLL. Windows compilation and a real OBS 32.2.2 session are still required
-before calling this a tested Windows release. See `docs/VALIDATION.md` for checks
-actually completed and the remaining acceptance checks.
+Version 0.1.0 has successfully compiled on Windows against OBS 32.2.2. Download the\nWindows artifact from [the successful build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38013457530).\nThe package contains the DLL, installation scripts, and quick-start guide. A real\nOBS 32.2.2 session is still required to validate runtime behavior. See\n`docs/VALIDATION.md` for completed checks and remaining acceptance checks.
 
 ## Features
 
