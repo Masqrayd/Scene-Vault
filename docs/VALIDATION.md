@@ -2,6 +2,16 @@
 
 ## Completed
 
+- Windows x64 build against official OBS 32.2.2 succeeded on GitHub Actions:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38013457530
+- Downloaded and checked the artifact ZIP: DLL, PDB, installer/uninstaller scripts,
+  and quick-start guide are present; archive integrity check passed.
+- Artifact SHA-256 matches GitHub's reported digest:
+  `a6fe50a94318ef27bd7017e0965f5d3634554dc9024ddc583f051a7bafd3f759`.
+- DLL exports OBS's load/unload/post-load entry points and links against OBS,
+  OBS frontend, Qt6, and the Windows C/C++ runtime.
+
+
 - Compiled the native plugin and test executables on Linux with GCC 13.3, Qt 6.4.2,
   and the packaged OBS 30.0.2 development/runtime libraries.
 - Separately checked both production C++ files against the official OBS 32.2.2
@@ -29,7 +39,7 @@ is still needed to confirm OBS's native UI behavior and integration.
 
 ## Still required before a Windows release
 
-1. Run the included GitHub Windows workflow and resolve any MSVC/package issues.
+1. Windows compilation is complete. Start with installation and runtime testing below.
 2. Install the compiled DLL into Windows OBS 32.2.2.
 3. Use a disposable scene collection containing Main, Camera, and Overlay scenes.
    Nest Camera and Overlay in Main, then hide them through the manager.
