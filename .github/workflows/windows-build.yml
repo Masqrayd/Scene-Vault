@@ -1,0 +1,35 @@
+name: Build Scene Vault for Windows
+on:
+  push:
+    branches: [main, master, StartHere]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure OBS 32.2.2 and Scene Vault
+        run: cmake --preset windows-x64 -DBUILD_TESTING=OFF
+      - name: Compile plugin
+        run: cmake --build --preset windows-x64 --parallel
+      - name: Package plugin and installer scripts
+        shell: pwsh
+        run: |
+          cmake --install build_x64 --config RelWithDebInfo --prefix dist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item scripts/Install-SceneVault.ps1 dist/
+          Copy-Item scripts/Uninstall-SceneVault.ps1 dist/
+          Copy-Item docs/QUICK_START.md dist/
+          if (!(Test-Path dist/scene-vault/bin/64bit/scene-vault.dll)) { throw 'Plugin DLL missing' }
+      - name: Downloadable Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scene-Vault-0.1.0-Windows-x64
+          path: dist/
+          if-no-files-found: error
