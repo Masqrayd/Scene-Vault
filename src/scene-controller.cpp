@@ -289,7 +289,7 @@ void SceneController::rearrange()
 {
     if (!scroll_ || !bottom_) return;
     bottom_->setDirection(width() < 420 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
-    const int columns = qBound(1, scroll_->viewport()->width() / 160, 12);
+    const int columns = qMax(1, qMin(order_.size(), qBound(1, scroll_->viewport()->width() / 160, 12)));
     const int rows = qMax(1, (order_.size() + columns - 1) / columns);
     const int cellWidth = qMax(1, (scroll_->viewport()->width() - 8 - (columns - 1) * grid_->spacing()) / columns);
     const int roomHeight = (scroll_->viewport()->height() - 8 - (rows - 1) * grid_->spacing()) / rows;
