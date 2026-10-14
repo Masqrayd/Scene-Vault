@@ -37,6 +37,7 @@ private:
     static void eventCallback(obs_frontend_event event, void *data);
     static void saveCallback(obs_data_t *data, bool saving, void *opaque);
     void bindSceneList();
+    QString controllerSettingsPath() const;
     void applyVisibility();
     void updateDeleteProtection();
     void rebuildManager();
@@ -70,6 +71,7 @@ private:
     VaultState state_;
     QSet<QListWidgetItem *> hiddenItems_;
     bool shuttingDown_ = false;
+    bool startupHandled_ = false;
     bool collectionChanging_ = false;
     bool refreshing_ = false;
     bool deleteProtected_ = false;

@@ -22,6 +22,7 @@ public:
     void refresh();
     void setAvailable(bool available);
     void openController();
+    static bool opensOnStartup(const QString &settingsPath);
 protected:
     void closeEvent(QCloseEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
@@ -36,6 +37,7 @@ private:
     std::function<QSet<QString>()> hidden_;
     QSettings *settings_;
     QCheckBox *onTop_;
+    QCheckBox *openOnStartup_;
     QSpinBox *columns_;
     QSpinBox *buttonHeight_;
     QGridLayout *grid_;

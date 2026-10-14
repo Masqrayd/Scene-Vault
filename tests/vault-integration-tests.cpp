@@ -260,6 +260,39 @@ int main(int argc, char **argv)
         check(!vaultController->isVisible(), "controller closes on OBS shutdown");
         check(!sceneWidget->item(1)->isHidden(), "shutdown restores native dock entries");
     }
+    // Exercise a new OBS launch with persisted startup preference, then verify
+    // collection changes and repeated load events never reopen a closed window.
+    {
+        QMainWindow startupWindow;
+        sceneWidget = new QListWidget(&startupWindow);
+        sceneWidget->setObjectName("scenes");
+        sceneWidget->addItems({"Main", "Camera renamed", "Overlay renamed"});
+        sceneWidget->setCurrentRow(0);
+        SceneVault startupVault(&startupWindow);
+        startupVault.showController();
+        SceneController *controller = nullptr;
+        for (auto *w : QApplication::topLevelWidgets())
+            if (w->objectName() == "masqraydSceneController") controller = static_cast<SceneController *>(w);
+        check(controller, "startup controller exists");
+        controller->findChild<QCheckBox *>("controllerOpenOnStartup")->setChecked(true);
+        controller->close();
+        startupVault.frontendEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+        check(controller->isVisible(), "saved preference opens controller after OBS loads");
+        controller->close();
+        startupVault.frontendEvent(OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED);
+        startupVault.frontendEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+        check(!controller->isVisible(), "startup auto-open happens only once per OBS launch");
+        controller->findChild<QCheckBox *>("controllerOpenOnStartup")->setChecked(false);
+    }
+    {
+        QMainWindow window;
+        SceneVault vault(&window);
+        vault.frontendEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+        bool exists = false;
+        for (auto *w : QApplication::topLevelWidgets())
+            if (w->objectName() == "masqraydSceneController") exists = true;
+        check(!exists, "disabled startup option leaves controller closed");
+    }
     obs_data_release(saved);
     for (auto *scene : scenes) obs_scene_release(scene);
     scenes.clear();

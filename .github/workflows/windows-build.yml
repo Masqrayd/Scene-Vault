@@ -30,6 +30,6 @@ jobs:
       - name: Downloadable Windows package
         uses: actions/upload-artifact@v4
         with:
-          name: Scene-Vault-0.2.1-Windows-x64
+          name: Scene-Vault-0.2.2-Windows-x64
           path: dist/
           if-no-files-found: error

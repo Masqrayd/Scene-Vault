@@ -92,6 +92,11 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     toolbar->addWidget(new QLabel("Height", this));
     toolbar->addWidget(buttonHeight_);
     layout->addLayout(toolbar);
+    openOnStartup_ = new QCheckBox("Open when OBS starts", this);
+    openOnStartup_->setObjectName("controllerOpenOnStartup");
+    openOnStartup_->setChecked(settings_->value("openOnStartup", false).toBool());
+    layout->addWidget(openOnStartup_);
+    connect(openOnStartup_, &QCheckBox::toggled, this, [this] { saveSettings(); });
     auto *scroll = new QScrollArea(this);
     scroll->setWidgetResizable(true);
     auto *panel = new QWidget(scroll);
@@ -145,6 +150,12 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
 }
 
 SceneController::~SceneController() { saveSettings(); }
+
+bool SceneController::opensOnStartup(const QString &settingsPath)
+{
+    QSettings settings(settingsPath, QSettings::IniFormat);
+    return settings.value("openOnStartup", false).toBool();
+}
 
 void SceneController::keepOnScreen()
 {
@@ -289,6 +300,7 @@ void SceneController::saveSettings()
     QDir().mkpath(QFileInfo(settings_->fileName()).absolutePath());
     settings_->setValue("geometry", saveGeometry());
     settings_->setValue("alwaysOnTop", onTop_->isChecked());
+    settings_->setValue("openOnStartup", openOnStartup_->isChecked());
     settings_->setValue("columns", columns_->value());
     settings_->setValue("buttonHeight", buttonHeight_->value());
     settings_->sync();

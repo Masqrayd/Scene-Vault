@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
     QSet<QString> hidden{"camera-id"};
     const auto settingsPath = config.filePath("controller.ini");
     {
+        check(!SceneController::opensOnStartup(settingsPath), "startup launch defaults off");
         SceneController controller(nullptr, [&] { return hidden; }, settingsPath);
         controller.openController();
         const auto previewPath = qEnvironmentVariable("SCENE_CONTROLLER_PREVIEW");
@@ -106,6 +107,10 @@ int main(int argc, char **argv) {
         top->setChecked(false);
         check(!controller.windowFlags().testFlag(Qt::WindowStaysOnTopHint), "on-top flag disabled");
         top->setChecked(true);
+        auto *startup = controller.findChild<QCheckBox *>("controllerOpenOnStartup");
+        check(!startup->isChecked(), "startup checkbox defaults off");
+        startup->setChecked(true);
+        check(SceneController::opensOnStartup(settingsPath), "startup preference saved immediately");
         controller.close();
         QSettings saved(settingsPath, QSettings::IniFormat);
         check(saved.value("alwaysOnTop").toBool() && !saved.value("geometry").toByteArray().isEmpty(), "settings persisted");
@@ -114,6 +119,10 @@ int main(int argc, char **argv) {
     }
     {
         SceneController restored(nullptr, [&] { return hidden; }, settingsPath);
+        auto *startup = restored.findChild<QCheckBox *>("controllerOpenOnStartup");
+        check(startup->isChecked(), "startup preference restored");
+        startup->setChecked(false);
+        check(!SceneController::opensOnStartup(settingsPath), "startup launch can be disabled");
         check(restored.windowFlags().testFlag(Qt::WindowStaysOnTopHint), "on-top preference restored");
     }
     std::puts("PASS: offscreen Qt mouse events, Preview/Program swap, vault filtering, rename, deletion, collection guard, on-top and persistence");

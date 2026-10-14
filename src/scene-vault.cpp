@@ -161,6 +161,10 @@ void SceneVault::frontendEvent(obs_frontend_event event)
         if (controller_) controller_->setAvailable(true);
     }
     refresh();
+    if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING && !startupHandled_) {
+        startupHandled_ = true;
+        if (SceneController::opensOnStartup(controllerSettingsPath())) showController();
+    }
 }
 
 void SceneVault::bindSceneList()
@@ -260,15 +264,20 @@ void SceneVault::updateDeleteProtection()
     }
 }
 
+QString SceneVault::controllerSettingsPath() const
+{
+    char *configPath = obs_module_config_path("scene-controller.ini");
+    const QString path = configPath ? QString::fromUtf8(configPath) :
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/scene-controller.ini";
+    bfree(configPath);
+    return path;
+}
+
 void SceneVault::showController()
 {
     if (shuttingDown_) return;
     if (!controller_) {
-        char *configPath = obs_module_config_path("scene-controller.ini");
-        const QString path = configPath ? QString::fromUtf8(configPath) :
-            QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/scene-controller.ini";
-        bfree(configPath);
-        controller_ = new SceneController(window_, [this] { return state_.hidden; }, path);
+        controller_ = new SceneController(window_, [this] { return state_.hidden; }, controllerSettingsPath());
         controller_->setAvailable(!collectionChanging_);
     }
     controller_->openController();

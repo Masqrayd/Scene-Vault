@@ -36,7 +36,7 @@ Closing the window hides it; reopen it through Tools. Position, size, button
 layout, and Always on top are saved. The controller closes with OBS. Exclusive
 full-screen applications and other topmost windows may cover an Always on top window.
 
-This 0.2.1 package updates the existing Scene Vault DLL. Close OBS and replace
+This 0.2.2 package updates the existing Scene Vault DLL. Close OBS and replace
 that DLL/folder; keep only one Scene Vault installation. Your saved hidden-scene
 membership remains in the scene collection.
 
@@ -77,3 +77,12 @@ Other tools can still select or delete scenes; this is not a global lock.
 The Studio Mode button shows ON/OFF and toggles the mode with one click.
 The yellow Send Preview to Program button matches the gold Preview highlight.
 It sends Preview to live output; OBS may swap the Preview and Program scenes afterward.
+
+## Open automatically with OBS
+
+Check **Open when OBS starts** in the controller. The saved preference opens
+the controller once OBS finishes loading, with your saved position, size, and
+Always on top setting. Closing it during a session keeps it closed until the
+next OBS launch; changing collections does not reopen it. Uncheck the option
+to return to opening it manually through Tools. Startup does not change Studio
+Mode or switch scenes.
