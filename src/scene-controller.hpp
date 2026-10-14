@@ -42,6 +42,7 @@ private:
     QCheckBox *openOnStartup_;
     QScrollArea *scroll_;
     QBoxLayout *bottom_;
+    int fixedColumns_ = 2;
     int layoutColumns_ = 0;
     int layoutHeight_ = 0;
     QStringList layoutOrder_;

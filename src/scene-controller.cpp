@@ -16,6 +16,8 @@
 #include <QStyleOptionButton>
 #include <QTextLayout>
 #include <QResizeEvent>
+#include <QMenu>
+#include <QAction>
 #include <QStyle>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -44,16 +46,16 @@ protected:
         option.text.clear();
         QStylePainter painter(this);
         painter.drawControl(QStyle::CE_PushButton, option);
-        const QRect area = rect().adjusted(10, 6, -10, -6);
+        const QRect area = rect().adjusted(5, 4, -5, -4);
         QFont fitted = font();
-        const int largest = qBound(10, qRound(qMin(width() / 10.0, height() / 3.0)), 24);
+        const int largest = qBound(6, qRound(qMin(width() / 9.0, height() / 2.6)), 24);
         QTextLayout textLayout;
         QTextOption textOption;
         textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
         textOption.setAlignment(Qt::AlignHCenter);
         textLayout.setTextOption(textOption);
         qreal total = 0;
-        for (int pixels = largest; pixels >= 8; --pixels) {
+        for (int pixels = largest; pixels >= 6; --pixels) {
             fitted.setPixelSize(pixels);
             textLayout.setFont(fitted);
             textLayout.setText(text());
@@ -68,7 +70,7 @@ protected:
             }
             textLayout.endLayout();
             if (total <= area.height()) break;
-            if (pixels > 8) textLayout.clearLayout();
+            if (pixels > 6) textLayout.clearLayout();
         }
         const bool live = property("program").toBool();
         const bool queued = property("preview").toBool();
@@ -114,6 +116,23 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     // SceneVault explicitly owns/deletes it and hides it during OBS shutdown.
     setObjectName("masqraydSceneController");
     setWindowTitle("Masqrayd Scene Controller");
+    fixedColumns_ = qBound(1, settings_->value("fixedColumns", 2).toInt(), 6);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested, this, [this](const QPoint &point) {
+        QMenu menu(this);
+        auto *columns = menu.addMenu("Scene columns");
+        for (int count = 1; count <= 6; ++count) {
+            auto *action = columns->addAction(QString::number(count));
+            action->setCheckable(true);
+            action->setChecked(count == fixedColumns_);
+            connect(action, &QAction::triggered, this, [this, count] {
+                fixedColumns_ = count;
+                rearrange();
+                saveSettings();
+            });
+        }
+        menu.exec(mapToGlobal(point));
+    });
     setMinimumSize(220, 220);
     resize(600, 430);
     auto *layout = new QVBoxLayout(this);
@@ -288,12 +307,12 @@ void SceneController::refresh()
 void SceneController::rearrange()
 {
     if (!scroll_ || !bottom_) return;
-    bottom_->setDirection(width() < 420 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
-    const int columns = qMax(1, qMin(order_.size(), qBound(1, scroll_->viewport()->width() / 160, 12)));
+    bottom_->setDirection(QBoxLayout::LeftToRight);
+    const int columns = qMax(1, qMin(order_.size(), fixedColumns_));
     const int rows = qMax(1, (order_.size() + columns - 1) / columns);
     const int cellWidth = qMax(1, (scroll_->viewport()->width() - 8 - (columns - 1) * grid_->spacing()) / columns);
     const int roomHeight = (scroll_->viewport()->height() - 8 - (rows - 1) * grid_->spacing()) / rows;
-    const int cellHeight = qBound(48, qMin(qRound(cellWidth * 0.55), roomHeight), 112);
+    const int cellHeight = qBound(30, qMin(qRound(cellWidth * 0.55), roomHeight), 112);
     if (columns == layoutColumns_ && cellHeight == layoutHeight_ && order_ == layoutOrder_) return;
     layoutColumns_ = columns;
     layoutHeight_ = cellHeight;
@@ -353,6 +372,7 @@ void SceneController::saveSettings()
     settings_->setValue("geometry", saveGeometry());
     settings_->setValue("alwaysOnTop", onTop_->isChecked());
     settings_->setValue("openOnStartup", openOnStartup_->isChecked());
+    settings_->setValue("fixedColumns", fixedColumns_);
     settings_->sync();
 }
 

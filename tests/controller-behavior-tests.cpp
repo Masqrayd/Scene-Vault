@@ -44,6 +44,16 @@ void obs_frontend_set_preview_program_mode(bool value) { studio = value; }
 void obs_frontend_set_current_preview_scene(obs_source_t *p) { ++previewChanges; preview = p; }
 void obs_frontend_preview_program_trigger_transition() { ++transitions; std::swap(program, preview); }
 }
+static int inkPixels(QPushButton *button) {
+    const auto image = button->grab().toImage();
+    int count = 0;
+    for (int y = 4; y < image.height() - 4; ++y)
+        for (int x = 5; x < image.width() - 5; ++x) {
+            const auto color = image.pixelColor(x, y);
+            if (color.red() < 80 && color.green() < 80 && color.blue() < 80) ++count;
+        }
+    return count;
+}
 static void check(bool ok, const char *message) {
     if (!ok) { std::fprintf(stderr, "FAIL: %s\n", message); std::exit(1); }
 }
@@ -99,11 +109,19 @@ int main(int argc, char **argv) {
         check(find("overlay-id") == button && button->text().startsWith("Overlay renamed"), "rename preserves identity");
         overlay.name = "A Much Longer Scene Name For My Production";
         controller.refresh();
+        QApplication::processEvents();
+        const auto wideWidth = button->width();
+        const auto wideSceneInk = inkPixels(button);
+        const auto wideSendInk = inkPixels(sendButton);
+        const auto wideStudioInk = inkPixels(studioButton);
         controller.resize(240, 320);
         QTest::qWait(60);
         check(button->text() == overlay.name, "full long scene name retained for wrapping");
-        check(button->width() <= controller.width() && button->y() > find("main-id")->y(), "narrow grid reflows to one column");
-        check(sendButton->width() <= controller.width() && sendButton->y() > studioButton->y(), "narrow action buttons stack");
+        check(button->width() < wideWidth && button->y() == find("main-id")->y(), "narrow grid preserves two columns and shrinks buttons");
+        check(inkPixels(button) < wideSceneInk, "scene text renders smaller when window narrows");
+        check(inkPixels(sendButton) < wideSendInk && inkPixels(studioButton) < wideStudioInk,
+              "both footer labels render smaller when buttons narrow");
+        check(sendButton->width() <= controller.width() && sendButton->y() == studioButton->y(), "narrow footer buttons remain side by side");
         if (!previewPath.isEmpty()) controller.grab().save(previewPath + ".narrow.png");
         controller.resize(600, 430);
         QTest::qWait(60);
