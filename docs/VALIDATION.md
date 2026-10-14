@@ -1,3 +1,24 @@
+# Validation record: Scene Vault 0.2.5 borderless controller
+
+- Removed native title bar/frame using Qt FramelessWindowHint.
+- Always on top and Open when OBS starts are checkable, saved context-menu actions;
+  their checkbox rows are removed. Existing saved preference keys remain compatible.
+- Right-click on controller/background/buttons exposes options and Close controller.
+- Drag background or Ctrl-drag anywhere to move; edge/corner drags resize.
+- Local tests verify no checkbox widgets, frameless flag, actual context-menu action
+  persistence, Ctrl-drag movement without scene selection, and corner size changes.
+- Compact/wide rendered layouts inspected; existing fixed columns and text fitting retained.
+- All three Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38508512192
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38508512196
+- ZIP checksum/integrity, DLL entry points, installer files, and borderless guide
+  verified. SHA-256:
+  `7c129a5f3cdde329b35e924b8a07b22f408a55d30fceffe45cc46978bf1334ce`.
+- Actual Windows OBS runtime and multi-monitor/DPI drag testing remain required.
+
+---
+
 # Validation record: Scene Vault 0.2.4 preserved columns and text fitting
 
 - Default scene layout now keeps two columns as the window narrows. A saved
