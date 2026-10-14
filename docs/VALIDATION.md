@@ -1,3 +1,22 @@
+# Validation record: Scene Vault 0.2.2 startup option
+
+- Added saved Open when OBS starts checkbox, off by default.
+- Controller opens once on FINISHED_LOADING when opted in, restoring its saved
+  layout and Always on top setting. It does not change Studio Mode or scenes.
+- Checkbox persistence and disabling tested locally; native plugin compiled.
+- All three Linux suites passed, including integration tests verifying startup
+  launch, opt-out, and no reopening on collection changes/repeated load events:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456049
+- Windows OBS 32.2.2 build and packaging passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456054
+- ZIP checksum/integrity, DLL entry points, installation files, and startup guide
+  verified. SHA-256:
+  `38a3d28edca5d53011e1b4a5ea3639b3159246fe9508b717448a933990cd1617`.
+- Rendered controller with new checkbox inspected. Real Windows OBS runtime
+  startup testing remains required.
+
+---
+
 # Validation record: Scene Vault 0.2.1 controller correction
 
 - Studio Mode control now reports ON/OFF and toggles with one click. The previous
