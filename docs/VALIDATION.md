@@ -14,8 +14,19 @@
 - The real-libobs `vault-integration` executable compiled but could not run here:
   libobs needs an X display, and this environment blocks Xvfb's listening sockets.
   GitHub's Linux workflow runs the complete suite under Xvfb.
-- Windows build is pending approval to publish the feature branch. No Windows
-  runtime, exclusive full-screen, or monitor-position behavior has been validated.
+- GitHub's Linux workflow passed all three suites, including real-libobs integration:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595737
+- Windows x64 compilation and packaging succeeded against official OBS 32.2.2:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595761
+- Built source commit: `b3575b3ae6816441b072e7e8eac61c4b912de44e`.
+- Downloaded artifact integrity and required contents verified: DLL, PDB,
+  installation/uninstallation scripts, and quick-start guide.
+- Artifact SHA-256 matches GitHub's digest:
+  `e1574dfc7ff4066b2d5fba20ff105592548bd9668243d75380907840e927b14c`.
+- DLL exports load/unload/post-load entry points and links to OBS, the OBS
+  frontend API, Qt6, and the Windows C/C++ runtime.
+- Windows runtime, exclusive full-screen, and monitor-position behavior still
+  require validation in a real OBS session.
 
 ## New acceptance checks
 

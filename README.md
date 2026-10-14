@@ -10,8 +10,10 @@ through **Tools > Scene Vault**.
 
 Version 0.2.0 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
 window with optional Always on top, single-click Preview, and double-click
-transition. The Windows package is built by GitHub Actions. Windows runtime
-validation in OBS is still required. See `docs/VALIDATION.md`.
+transition. The [Windows build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595761)
+succeeded and [all three Linux test suites](https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595737)
+passed. Download **Scene-Vault-0.2.0-Windows-x64** from the Windows run's Artifacts.
+Windows runtime validation in OBS is still required. See `docs/VALIDATION.md`.
 
 ## Features
 
