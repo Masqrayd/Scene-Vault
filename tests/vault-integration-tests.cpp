@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
+#include <QAction>
 #include <QDialog>
 #include <QLineEdit>
 #include <QListWidget>
@@ -200,7 +201,7 @@ int main(int argc, char **argv)
         QTest::qWait(400);
         controller->refresh();
         check(overlayButton->property("program").toBool(), "Program button highlight follows output");
-        auto *top = controller->findChild<QCheckBox *>("controllerAlwaysOnTop");
+        auto *top = controller->findChild<QAction *>("controllerAlwaysOnTop");
         top->setChecked(true);
         check(controller->windowFlags().testFlag(Qt::WindowStaysOnTopHint), "on-top flag enabled");
         top->setChecked(false);
@@ -274,7 +275,7 @@ int main(int argc, char **argv)
         for (auto *w : QApplication::topLevelWidgets())
             if (w->objectName() == "masqraydSceneController") controller = static_cast<SceneController *>(w);
         check(controller, "startup controller exists");
-        controller->findChild<QCheckBox *>("controllerOpenOnStartup")->setChecked(true);
+        controller->findChild<QAction *>("controllerOpenOnStartup")->setChecked(true);
         controller->close();
         startupVault.frontendEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
         check(controller->isVisible(), "saved preference opens controller after OBS loads");
@@ -282,7 +283,7 @@ int main(int argc, char **argv)
         startupVault.frontendEvent(OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED);
         startupVault.frontendEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
         check(!controller->isVisible(), "startup auto-open happens only once per OBS launch");
-        controller->findChild<QCheckBox *>("controllerOpenOnStartup")->setChecked(false);
+        controller->findChild<QAction *>("controllerOpenOnStartup")->setChecked(false);
     }
     {
         QMainWindow window;

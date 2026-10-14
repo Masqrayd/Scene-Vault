@@ -22,7 +22,7 @@ and are not covered by the default installer path.
 
 1. Open **Tools > Masqrayd Scene Controller**.
 2. Move and resize the window on your preferred monitor.
-3. Check **Always on top** to keep it above ordinary application windows.
+3. Right-click the controller and check **Always on top** to keep it above ordinary application windows.
 4. Enable Studio Mode in OBS, or use **Studio Mode: OFF — click to enable** in the controller.
 5. Single-click a scene button to select Preview. Double-click to transition it
    to Program using your OBS transition. **Send Preview to Program** is also available.
@@ -36,7 +36,7 @@ Closing the window hides it; reopen it through Tools. Position, size, button
 layout, and Always on top are saved. The controller closes with OBS. Exclusive
 full-screen applications and other topmost windows may cover an Always on top window.
 
-This 0.2.4 package updates the existing Scene Vault DLL. Close OBS and replace
+This 0.2.5 package updates the existing Scene Vault DLL. Close OBS and replace
 that DLL/folder; keep only one Scene Vault installation. Your saved hidden-scene
 membership remains in the scene collection.
 
@@ -80,7 +80,7 @@ It sends Preview to live output; OBS may swap the Preview and Program scenes aft
 
 ## Open automatically with OBS
 
-Check **Open when OBS starts** in the controller. The saved preference opens
+Right-click the controller and check **Open when OBS starts**. The saved preference opens
 the controller once OBS finishes loading, with your saved position, size, and
 Always on top setting. Closing it during a session keeps it closed until the
 next OBS launch; changing collections does not reopen it. Uncheck the option
@@ -95,3 +95,11 @@ The default scene grid has two columns and keeps them when resized. Right-click
 the controller and choose **Scene columns** to set 1–6 columns; that choice is saved.
 The buttons get narrower and their text gets smaller or wraps, instead of switching
 to one column automatically.
+
+## Borderless window
+
+The title bar and window frame are removed. Drag unused background to move the
+controller, or hold **Ctrl** and drag anywhere, including on a button, without
+selecting a scene. Drag an edge or corner to resize. Right-click anywhere for
+Always on top, Open when OBS starts, Scene columns, and Close controller. Reopen
+a closed controller through Tools > Masqrayd Scene Controller.

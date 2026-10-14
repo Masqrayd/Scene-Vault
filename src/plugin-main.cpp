@@ -15,7 +15,7 @@ MODULE_EXPORT const char *obs_module_author(void) { return "Masqrayd"; }
 
 bool obs_module_load(void)
 {
-    blog(LOG_INFO, "[Scene Vault] Loading version 0.2.4");
+    blog(LOG_INFO, "[Scene Vault] Loading version 0.2.5");
     return true;
 }
 

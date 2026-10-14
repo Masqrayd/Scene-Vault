@@ -3,8 +3,13 @@
 #include <util/bmem.h>
 #include <QApplication>
 #include <QCheckBox>
+#include <QAction>
 #include <QPushButton>
 #include <QSettings>
+#include <QMenu>
+#include <QContextMenuEvent>
+#include <QTimer>
+#include <QMouseEvent>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 #include <cstdio>
@@ -74,8 +79,28 @@ int main(int argc, char **argv) {
             return nullptr;
         };
         check(!find("camera-id") && find("main-id") && find("overlay-id"), "hidden membership filters buttons");
+        check(controller.windowFlags().testFlag(Qt::FramelessWindowHint), "controller has no title bar or frame");
+        check(!controller.findChild<QCheckBox *>("controllerAlwaysOnTop") && !controller.findChild<QCheckBox *>("controllerOpenOnStartup"), "settings are absent from visible layout");
         check(!controller.parentWidget(), "floating window independent of main OBS window");
         auto *button = find("overlay-id");
+        const auto originalPosition = controller.pos();
+        const auto beforeDrag = previewChanges;
+        const auto dragStart = button->mapToGlobal(QPoint(20, 20));
+        QTest::mousePress(button, Qt::LeftButton, Qt::ControlModifier, QPoint(20, 20));
+        const auto dragEnd = dragStart + QPoint(40, 30);
+        QMouseEvent moveEvent(QEvent::MouseMove, controller.mapFromGlobal(dragEnd), dragEnd, Qt::NoButton, Qt::LeftButton, Qt::ControlModifier);
+        QApplication::sendEvent(&controller, &moveEvent);
+        QTest::mouseRelease(&controller, Qt::LeftButton, Qt::ControlModifier, controller.mapFromGlobal(dragEnd));
+        check(controller.pos() == originalPosition + QPoint(40, 30) && previewChanges == beforeDrag,
+              "Ctrl-drag moves frameless window without selecting a scene");
+        const auto originalSize = controller.size();
+        const auto resizeStart = controller.mapToGlobal(QPoint(controller.width() - 2, controller.height() - 2));
+        QTest::mousePress(&controller, Qt::LeftButton, Qt::NoModifier, QPoint(controller.width() - 2, controller.height() - 2));
+        const auto resizeEnd = resizeStart + QPoint(40, 20);
+        QMouseEvent resizeMove(QEvent::MouseMove, controller.mapFromGlobal(resizeEnd), resizeEnd, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+        QApplication::sendEvent(&controller, &resizeMove);
+        QTest::mouseRelease(&controller, Qt::LeftButton, Qt::NoModifier, controller.mapFromGlobal(resizeEnd));
+        check(controller.size() == originalSize + QSize(40, 20), "frameless window resizes from its corner");
         studio = false; controller.refresh();
         QTest::mouseClick(button, Qt::LeftButton);
         check(previewChanges == 0 && transitions == 0, "Studio Mode off disables selection");
@@ -136,15 +161,22 @@ int main(int argc, char **argv) {
         QTest::mouseClick(button, Qt::LeftButton);
         check(previewChanges == before, "collection change blocks clicks");
         controller.setAvailable(true);
-        auto *top = controller.findChild<QCheckBox *>("controllerAlwaysOnTop");
+        auto *top = controller.findChild<QAction *>("controllerAlwaysOnTop");
         top->setChecked(true);
         check(controller.windowFlags().testFlag(Qt::WindowStaysOnTopHint), "on-top flag enabled");
         top->setChecked(false);
         check(!controller.windowFlags().testFlag(Qt::WindowStaysOnTopHint), "on-top flag disabled");
         top->setChecked(true);
-        auto *startup = controller.findChild<QCheckBox *>("controllerOpenOnStartup");
+        auto *startup = controller.findChild<QAction *>("controllerOpenOnStartup");
         check(!startup->isChecked(), "startup checkbox defaults off");
-        startup->setChecked(true);
+        QTimer::singleShot(0, &controller, [&] {
+            auto *menu = controller.findChild<QMenu *>("controllerOptionsMenu");
+            check(menu && menu->actions().contains(top) && menu->actions().contains(startup), "right-click menu contains saved settings");
+            startup->trigger();
+            menu->close();
+        });
+        QContextMenuEvent context(QContextMenuEvent::Mouse, QPoint(20, 20), button->mapToGlobal(QPoint(20, 20)));
+        QApplication::sendEvent(button, &context);
         check(SceneController::opensOnStartup(settingsPath), "startup preference saved immediately");
         controller.close();
         QSettings saved(settingsPath, QSettings::IniFormat);
@@ -154,7 +186,7 @@ int main(int argc, char **argv) {
     }
     {
         SceneController restored(nullptr, [&] { return hidden; }, settingsPath);
-        auto *startup = restored.findChild<QCheckBox *>("controllerOpenOnStartup");
+        auto *startup = restored.findChild<QAction *>("controllerOpenOnStartup");
         check(startup->isChecked(), "startup preference restored");
         startup->setChecked(false);
         check(!SceneController::opensOnStartup(settingsPath), "startup launch can be disabled");

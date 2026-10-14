@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <functional>
 
-class QCheckBox;
+class QAction;
 class QGridLayout;
 class QLabel;
 class QPushButton;
@@ -36,12 +36,14 @@ private:
     void rearrange();
     void saveSettings();
     void keepOnScreen();
+    void showOptions(const QPoint &globalPosition);
+    int edgesAt(const QPoint &localPosition) const;
     std::function<QSet<QString>()> hidden_;
     QSettings *settings_;
-    QCheckBox *onTop_;
-    QCheckBox *openOnStartup_;
-    QScrollArea *scroll_;
-    QBoxLayout *bottom_;
+    QAction *onTop_;
+    QAction *openOnStartup_;
+    QScrollArea *scroll_ = nullptr;
+    QBoxLayout *bottom_ = nullptr;
     int fixedColumns_ = 2;
     int layoutColumns_ = 0;
     int layoutHeight_ = 0;
@@ -55,4 +57,8 @@ private:
     bool available_ = true;
     bool restoring_ = true;
     bool transitionPending_ = false;
+    bool dragging_ = false;
+    int resizeEdges_ = 0;
+    QPoint dragOrigin_;
+    QRect dragGeometry_;
 };

@@ -1,6 +1,6 @@
 #include "scene-controller.hpp"
 #include <obs-frontend-api.h>
-#include <QCheckBox>
+#include <QContextMenuEvent>
 #include <QCloseEvent>
 #include <QDir>
 #include <QFileInfo>
@@ -108,7 +108,7 @@ private:
 
 SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()> hidden,
                                  const QString &settingsPath)
-    : QDialog(nullptr, Qt::Window), hidden_(std::move(hidden)),
+    : QDialog(nullptr, Qt::Window | Qt::FramelessWindowHint), hidden_(std::move(hidden)),
       settings_(new QSettings(settingsPath, QSettings::IniFormat, this))
 {
     Q_UNUSED(parent);
@@ -117,36 +117,17 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     setObjectName("masqraydSceneController");
     setWindowTitle("Masqrayd Scene Controller");
     fixedColumns_ = qBound(1, settings_->value("fixedColumns", 2).toInt(), 6);
-    setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, &QWidget::customContextMenuRequested, this, [this](const QPoint &point) {
-        QMenu menu(this);
-        auto *columns = menu.addMenu("Scene columns");
-        for (int count = 1; count <= 6; ++count) {
-            auto *action = columns->addAction(QString::number(count));
-            action->setCheckable(true);
-            action->setChecked(count == fixedColumns_);
-            connect(action, &QAction::triggered, this, [this, count] {
-                fixedColumns_ = count;
-                rearrange();
-                saveSettings();
-            });
-        }
-        menu.exec(mapToGlobal(point));
-    });
-    setMinimumSize(220, 220);
+    setMinimumSize(220, 160);
     resize(600, 430);
     auto *layout = new QVBoxLayout(this);
-    auto *toolbar = new QHBoxLayout;
-    onTop_ = new QCheckBox("Always on top", this);
+    onTop_ = new QAction("Always on top", this);
     onTop_->setObjectName("controllerAlwaysOnTop");
-    toolbar->addWidget(onTop_);
-    toolbar->addStretch();
-    layout->addLayout(toolbar);
-    openOnStartup_ = new QCheckBox("Open when OBS starts", this);
+    onTop_->setCheckable(true);
+    openOnStartup_ = new QAction("Open when OBS starts", this);
     openOnStartup_->setObjectName("controllerOpenOnStartup");
+    openOnStartup_->setCheckable(true);
     openOnStartup_->setChecked(settings_->value("openOnStartup", false).toBool());
-    layout->addWidget(openOnStartup_);
-    connect(openOnStartup_, &QCheckBox::toggled, this, [this] { saveSettings(); });
+    connect(openOnStartup_, &QAction::toggled, this, [this] { saveSettings(); });
     scroll_ = new QScrollArea(this);
     scroll_->setWidgetResizable(true);
     scroll_->viewport()->installEventFilter(this);
@@ -188,7 +169,7 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
         QTimer::singleShot(100, this, &SceneController::refresh);
     });
     connect(transition_, &QPushButton::clicked, this, &SceneController::transitionPreview);
-    connect(onTop_, &QCheckBox::toggled, this, [this](bool enabled) {
+    connect(onTop_, &QAction::toggled, this, [this](bool enabled) {
         const auto geometry = saveGeometry();
         const bool visible = isVisible();
         setWindowFlag(Qt::WindowStaysOnTopHint, enabled);
@@ -201,6 +182,12 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     keepOnScreen();
     restoring_ = false;
     refresh();
+    installEventFilter(this);
+    setMouseTracking(true);
+    for (auto *widget : findChildren<QWidget *>()) {
+        widget->installEventFilter(this);
+        widget->setMouseTracking(true);
+    }
 }
 
 SceneController::~SceneController() { saveSettings(); }
@@ -261,6 +248,8 @@ void SceneController::refresh()
             button = new SceneButton(this);
             button->setAutoDefault(false);
             button->setDefault(false);
+            button->installEventFilter(this);
+            button->setMouseTracking(true);
             button->setProperty("sceneButton", true);
             button->setProperty("sceneUuid", id);
             buttons_.insert(id, button);
@@ -329,10 +318,98 @@ void SceneController::rearrange()
     }
 }
 
+void SceneController::showOptions(const QPoint &globalPosition)
+{
+    QMenu menu(this);
+    menu.setObjectName("controllerOptionsMenu");
+    menu.addAction(onTop_);
+    menu.addAction(openOnStartup_);
+    auto *columns = menu.addMenu("Scene columns");
+    for (int count = 1; count <= 6; ++count) {
+        auto *action = columns->addAction(QString::number(count));
+        action->setCheckable(true);
+        action->setChecked(count == fixedColumns_);
+        connect(action, &QAction::triggered, this, [this, count] {
+            fixedColumns_ = count;
+            rearrange();
+            saveSettings();
+        });
+    }
+    menu.addSeparator();
+    auto *hint = menu.addAction("Move: drag background or Ctrl+drag • Resize: drag edges");
+    hint->setEnabled(false);
+    menu.addSeparator();
+    auto *closeAction = menu.addAction("Close controller");
+    connect(closeAction, &QAction::triggered, this, &QWidget::close);
+    menu.exec(globalPosition);
+}
+
+int SceneController::edgesAt(const QPoint &position) const
+{
+    int edges = 0;
+    if (position.x() <= 6) edges |= 1;
+    if (position.x() >= width() - 7) edges |= 2;
+    if (position.y() <= 6) edges |= 4;
+    if (position.y() >= height() - 7) edges |= 8;
+    return edges;
+}
+
 bool SceneController::eventFilter(QObject *watched, QEvent *event)
 {
     if (scroll_ && watched == scroll_->viewport() && event->type() == QEvent::Resize)
         QTimer::singleShot(0, this, &SceneController::rearrange);
+    if (event->type() == QEvent::ContextMenu) {
+        auto *context = static_cast<QContextMenuEvent *>(event);
+        showOptions(context->globalPos());
+        return true;
+    }
+    if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseMove ||
+        event->type() == QEvent::MouseButtonRelease) {
+        auto *mouse = static_cast<QMouseEvent *>(event);
+        const auto global = mouse->globalPosition().toPoint();
+        const auto local = mapFromGlobal(global);
+        if (event->type() == QEvent::MouseButtonPress && mouse->button() == Qt::LeftButton) {
+            const bool background = watched == this || watched == scroll_->viewport() ||
+                                    watched == scroll_->widget() || watched == status_;
+            const int edges = edgesAt(local);
+            if (edges || background || (mouse->modifiers() & Qt::ControlModifier)) {
+                dragging_ = true;
+                resizeEdges_ = edges;
+                dragOrigin_ = global;
+                dragGeometry_ = geometry();
+                grabMouse();
+                return true;
+            }
+        }
+        if (event->type() == QEvent::MouseMove && dragging_) {
+            const auto delta = global - dragOrigin_;
+            if (!resizeEdges_) move(dragGeometry_.topLeft() + delta);
+            else {
+                auto next = dragGeometry_;
+                if (resizeEdges_ & 1) next.setLeft(qMin(dragGeometry_.left() + delta.x(), next.right() - minimumWidth() + 1));
+                if (resizeEdges_ & 2) next.setRight(qMax(dragGeometry_.right() + delta.x(), next.left() + minimumWidth() - 1));
+                if (resizeEdges_ & 4) next.setTop(qMin(dragGeometry_.top() + delta.y(), next.bottom() - minimumHeight() + 1));
+                if (resizeEdges_ & 8) next.setBottom(qMax(dragGeometry_.bottom() + delta.y(), next.top() + minimumHeight() - 1));
+                setGeometry(next);
+            }
+            return true;
+        }
+        if (event->type() == QEvent::MouseButtonRelease && dragging_ && mouse->button() == Qt::LeftButton) {
+            dragging_ = false;
+            resizeEdges_ = 0;
+            releaseMouse();
+            saveSettings();
+            return true;
+        }
+        if (event->type() == QEvent::MouseMove && !dragging_) {
+            const int edges = edgesAt(local);
+            const auto cursor = (edges == 5 || edges == 10) ? Qt::SizeFDiagCursor :
+                                (edges == 6 || edges == 9) ? Qt::SizeBDiagCursor :
+                                (edges & 3) ? Qt::SizeHorCursor : (edges & 12) ? Qt::SizeVerCursor : Qt::ArrowCursor;
+            setCursor(cursor);
+            if (auto *widget = qobject_cast<QWidget *>(watched)) widget->setCursor(cursor);
+        }
+    }
     return QDialog::eventFilter(watched, event);
 }
 
