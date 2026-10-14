@@ -8,11 +8,11 @@ through **Tools > Scene Vault**.
 
 ## Status
 
-Version 0.2.3 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
+Version 0.2.4 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
 window with optional Always on top, single-click Preview, and double-click
-transition. The [Windows build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033334)
-succeeded and [all three Linux test suites](https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033296)
-passed. Download **Scene-Vault-0.2.3-Windows-x64** from the Windows run's Artifacts.
+transition. The [Windows build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274963)
+succeeded and [all three Linux test suites](https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274971)
+passed. Download **Scene-Vault-0.2.4-Windows-x64** from the Windows run's Artifacts.
 Windows runtime validation in OBS is still required. See `docs/VALIDATION.md`.
 
 ## Features
@@ -24,8 +24,9 @@ Windows runtime validation in OBS is still required. See `docs/VALIDATION.md`.
 - Optional Always on top, responsive button grid, saved position and size.
 - Saved Open when OBS starts option launches the controller after OBS finishes loading.
 - Scene buttons show only scene names; solid red marks Program and gold marks Preview.
-- Button columns, height, wrapping, and font size adapt to the window automatically.
-- Bottom actions wrap/scale their labels and stack vertically in narrow windows.
+- Scene grid keeps its chosen columns while button dimensions and wrapped/scaled text adapt to the window.
+- Defaults to two columns; right-click > Scene columns sets a saved 1–6 column layout.
+- Bottom actions stay side by side while their labels wrap and shrink with their widths.
 - Scene renaming, ordering, visibility, and collection changes update the buttons.
 - Vaulted scenes stay excluded even while temporarily shown for editing or recovery.
 
@@ -69,7 +70,7 @@ plugins that alter the same list should not be assumed compatible without testin
    `CMakeLists.txt` and `buildspec.json` must be at the root, not inside another folder.
 3. Open **Actions > Build Scene Vault for Windows**. The initial push starts the build;
    **Run workflow** can start another one.
-4. Download **Scene-Vault-0.2.3-Windows-x64** from the successful run's Artifacts section.
+4. Download **Scene-Vault-0.2.4-Windows-x64** from the successful run's Artifacts section.
 5. Extract it, close OBS, and follow `QUICK_START.md`.
 
 The workflow downloads the official OBS 32.2.2 sources and the matching official

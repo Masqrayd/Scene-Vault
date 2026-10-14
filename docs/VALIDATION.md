@@ -1,3 +1,26 @@
+# Validation record: Scene Vault 0.2.4 preserved columns and text fitting
+
+- Default scene layout now keeps two columns as the window narrows. A saved
+  Scene columns context-menu setting supports 1–6 columns without width-driven reflow.
+- Footer buttons remain side by side. Scene and footer labels wrap and shrink
+  inside their narrowing buttons, rather than using stacking to keep text large.
+- Fitter uses width and height with compact padding; scene buttons can shrink to
+  30px high while fonts scale down as needed. Existing colors/startup/topmost retained.
+- Local build and state/controller tests passed. New rendered-ink pixel comparisons
+  verify actual smaller text for scene, Studio Mode, and Send Preview to Program.
+- Tests verify fixed two-column and side-by-side footer geometry at narrow width.
+- Narrow/wide rendered layouts inspected and compared against user-provided examples.
+- All three Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274971
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274963
+- ZIP integrity/checksum, DLL entry points, installer files, and fixed-column guide
+  verified. SHA-256:
+  `db677f99be990592d173f83d3349487f7889cff2b0277c376ae13f8b5fe06124`.
+- Actual Windows OBS runtime testing remains required.
+
+---
+
 # Validation record: Scene Vault 0.2.3 responsive controller
 
 - Scene buttons show scene names only. Program fills red (#ea6565), Preview fills
