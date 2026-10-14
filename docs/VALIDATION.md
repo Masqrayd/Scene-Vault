@@ -1,3 +1,22 @@
+# Validation record: Scene Vault 0.2.1 controller correction
+
+- Studio Mode control now reports ON/OFF and toggles with one click. The previous
+  Enable button always requested ON and appeared unresponsive when already on.
+- Transition Preview is now Send Preview to Program, colored #e6b84a to match Preview.
+- Native Linux build and local controller/state suites passed. Toggle tests verify
+  enabling, disabling, and re-enabling, with label updates.
+- All three GitHub Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38503890879
+- Windows OBS 32.2.2 build and packaging succeeded:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38503890895
+- Downloaded ZIP checksum, integrity, required installation files, and DLL entry
+  points verified. SHA-256:
+  `38c330b50666c9c2d463119568248431ad6fc0172bf687491256c34ee4990466`.
+- Inspected the rendered controller layout with the ON label and yellow action.
+- Actual Windows OBS runtime testing of this update remains required.
+
+---
+
 # Validation record: Scene Vault 0.2.0 + Scene Controller
 
 ## Local results for 0.2.0
