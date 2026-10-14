@@ -8,11 +8,11 @@ through **Tools > Scene Vault**.
 
 ## Status
 
-Version 0.2.2 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
+Version 0.2.3 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
 window with optional Always on top, single-click Preview, and double-click
-transition. The [Windows build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456054)
-succeeded and [all three Linux test suites](https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456049)
-passed. Download **Scene-Vault-0.2.2-Windows-x64** from the Windows run's Artifacts.
+transition. The [Windows build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033334)
+succeeded and [all three Linux test suites](https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033296)
+passed. Download **Scene-Vault-0.2.3-Windows-x64** from the Windows run's Artifacts.
 Windows runtime validation in OBS is still required. See `docs/VALIDATION.md`.
 
 ## Features
@@ -21,9 +21,11 @@ Windows runtime validation in OBS is still required. See `docs/VALIDATION.md`.
 - Single-click selects Preview; double-click transitions the clicked scene using OBS's active transition.
 - Studio Mode is required; the ON/OFF button toggles the mode with one click.
 - Yellow Send Preview to Program button matches the Preview highlight and names the transition direction.
-- Optional Always on top, adjustable columns/button height, saved position and size.
+- Optional Always on top, responsive button grid, saved position and size.
 - Saved Open when OBS starts option launches the controller after OBS finishes loading.
-- Program and Preview labels and colored borders track OBS selection.
+- Scene buttons show only scene names; solid red marks Program and gold marks Preview.
+- Button columns, height, wrapping, and font size adapt to the window automatically.
+- Bottom actions wrap/scale their labels and stack vertically in narrow windows.
 - Scene renaming, ordering, visibility, and collection changes update the buttons.
 - Vaulted scenes stay excluded even while temporarily shown for editing or recovery.
 
@@ -67,7 +69,7 @@ plugins that alter the same list should not be assumed compatible without testin
    `CMakeLists.txt` and `buildspec.json` must be at the root, not inside another folder.
 3. Open **Actions > Build Scene Vault for Windows**. The initial push starts the build;
    **Run workflow** can start another one.
-4. Download **Scene-Vault-0.2.2-Windows-x64** from the successful run's Artifacts section.
+4. Download **Scene-Vault-0.2.3-Windows-x64** from the successful run's Artifacts section.
 5. Extract it, close OBS, and follow `QUICK_START.md`.
 
 The workflow downloads the official OBS 32.2.2 sources and the matching official

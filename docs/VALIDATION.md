@@ -1,3 +1,26 @@
+# Validation record: Scene Vault 0.2.3 responsive controller
+
+- Scene buttons show scene names only. Program fills red (#ea6565), Preview fills
+  gold (#e6b84a); red takes priority when both target the same scene.
+- Removed manual Columns/Height controls. Grid columns and button heights adapt
+  to viewport dimensions and scene count. Text wraps at word boundaries or within
+  long words and scales to fit. Narrow windows stack bottom actions vertically.
+- Existing click/double-click, startup preference, and Always on top behavior retained.
+- Local build and controller/state tests passed. New tests inspect red/gold pixels,
+  name-only labels, long-name retention, and narrow/wide grid/action positions.
+- Wide and compact (240 x 320) rendered layouts inspected with a long scene name.
+- All three GitHub Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033296
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033334
+- Downloaded ZIP checksum/integrity, DLL entry points, installation files, and
+  responsive-layout guide verified. SHA-256:
+  `be26b643c6120c898b2f7f080076ea2b942b019fc68969c6e5d352e3fa1c6c60`.
+- Real Windows OBS runtime testing remains required. Tiny windows use scrolling
+  when the scene grid cannot fit without making buttons too small.
+
+---
+
 # Validation record: Scene Vault 0.2.2 startup option
 
 - Added saved Open when OBS starts checkbox, off by default.
