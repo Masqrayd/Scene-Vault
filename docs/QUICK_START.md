@@ -23,9 +23,9 @@ and are not covered by the default installer path.
 1. Open **Tools > Masqrayd Scene Controller**.
 2. Move and resize the window on your preferred monitor.
 3. Check **Always on top** to keep it above ordinary application windows.
-4. Enable Studio Mode in OBS, or use **Enable Studio Mode** in the controller.
+4. Enable Studio Mode in OBS, or use **Studio Mode: OFF — click to enable** in the controller.
 5. Single-click a scene button to select Preview. Double-click to transition it
-   to Program using your OBS transition. **Transition Preview** is also available.
+   to Program using your OBS transition. **Send Preview to Program** is also available.
 6. Adjust **Columns** and **Height** for your preferred button layout.
 
 Program has a red border, Preview a gold border, and both a purple border; buttons
@@ -36,7 +36,7 @@ Closing the window hides it; reopen it through Tools. Position, size, button
 layout, and Always on top are saved. The controller closes with OBS. Exclusive
 full-screen applications and other topmost windows may cover an Always on top window.
 
-This 0.2.0 package updates the existing Scene Vault DLL. Close OBS and replace
+This 0.2.1 package updates the existing Scene Vault DLL. Close OBS and replace
 that DLL/folder; keep only one Scene Vault installation. Your saved hidden-scene
 membership remains in the scene collection.
 
@@ -73,3 +73,7 @@ Studio Mode prevents an automatic scene switch; it does not isolate shared edits
 Hidden scenes are still reachable through OBS hotkeys and other controllers.
 The native Remove Scene action is disabled when a vaulted scene is selected.
 Other tools can still select or delete scenes; this is not a global lock.
+
+The Studio Mode button shows ON/OFF and toggles the mode with one click.
+The yellow Send Preview to Program button matches the gold Preview highlight.
+It sends Preview to live output; OBS may swap the Preview and Program scenes afterward.

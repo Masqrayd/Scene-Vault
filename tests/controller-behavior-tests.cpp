@@ -68,7 +68,16 @@ int main(int argc, char **argv) {
         studio = false; controller.refresh();
         QTest::mouseClick(button, Qt::LeftButton);
         check(previewChanges == 0 && transitions == 0, "Studio Mode off disables selection");
-        studio = true; controller.refresh();
+        auto *studioButton = controller.findChild<QPushButton *>("controllerStudioMode");
+        check(studioButton->text().contains("OFF"), "Studio button reports OFF");
+        QTest::mouseClick(studioButton, Qt::LeftButton);
+        check(studio && studioButton->text().contains("ON"), "one click enables Studio Mode and updates label");
+        QTest::mouseClick(studioButton, Qt::LeftButton);
+        check(!studio && studioButton->text().contains("OFF"), "one click disables Studio Mode and updates label");
+        QTest::mouseClick(studioButton, Qt::LeftButton);
+        check(studio, "Studio Mode can be re-enabled");
+        auto *sendButton = controller.findChild<QPushButton *>("controllerSendPreview");
+        check(sendButton->text() == "Send Preview to Program", "transition action clearly names its direction");
         QTest::mouseClick(button, Qt::LeftButton);
         check(preview == source(overlay) && program == source(mainScene) && transitions == 0, "single click changes only Preview");
         QTest::mouseDClick(button, Qt::LeftButton);

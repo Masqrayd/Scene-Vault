@@ -100,11 +100,14 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     scroll->setWidget(panel);
     layout->addWidget(scroll, 1);
     auto *bottom = new QHBoxLayout;
-    auto *studio = new QPushButton("Enable Studio Mode", this);
-    studio->setAutoDefault(false);
-    transition_ = new QPushButton("Transition Preview", this);
+    studio_ = new QPushButton("Studio Mode: OFF — click to enable", this);
+    studio_->setObjectName("controllerStudioMode");
+    studio_->setAutoDefault(false);
+    transition_ = new QPushButton("Send Preview to Program", this);
     transition_->setAutoDefault(false);
-    bottom->addWidget(studio);
+    transition_->setObjectName("controllerSendPreview");
+    transition_->setToolTip("Send the current Preview scene to live Program using your OBS transition. OBS may swap Preview and Program afterward.");
+    bottom->addWidget(studio_);
     bottom->addWidget(transition_);
     layout->addLayout(bottom);
     status_ = new QLabel(this);
@@ -114,11 +117,14 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     setStyleSheet("QPushButton[sceneButton=\"true\"] { padding: 8px; font-size: 14px; border: 2px solid #777; border-radius: 6px; }"
                   "QPushButton[sceneButton=\"true\"][preview=\"true\"] { border-color: #e6b84a; }"
                   "QPushButton[sceneButton=\"true\"][program=\"true\"] { border-color: #ea6565; }"
-                  "QPushButton[sceneButton=\"true\"][preview=\"true\"][program=\"true\"] { border-color: #c487ed; }");
-    connect(studio, &QPushButton::clicked, this, [this] {
+                  "QPushButton[sceneButton=\"true\"][preview=\"true\"][program=\"true\"] { border-color: #c487ed; }"
+                  "QPushButton#controllerSendPreview:enabled { background-color: #e6b84a; color: #161616; border: 2px solid #e6b84a; border-radius: 4px; padding: 6px; }"
+                  "QPushButton#controllerSendPreview:disabled { color: #888; border: 2px solid #888; border-radius: 4px; padding: 6px; }");
+    connect(studio_, &QPushButton::clicked, this, [this] {
         if (!available_) return;
-        obs_frontend_set_preview_program_mode(true);
+        obs_frontend_set_preview_program_mode(!obs_frontend_preview_program_mode_active());
         refresh();
+        QTimer::singleShot(100, this, &SceneController::refresh);
     });
     connect(transition_, &QPushButton::clicked, this, &SceneController::transitionPreview);
     connect(columns_, qOverload<int>(&QSpinBox::valueChanged), this, [this] { rearrange(); saveSettings(); });
@@ -168,6 +174,7 @@ void SceneController::setAvailable(bool available)
         transitionPending_ = false;
         for (auto *button : buttons_) button->setEnabled(false);
         transition_->setEnabled(false);
+        studio_->setEnabled(false);
         status_->setText("Loading scene collection…");
     } else refresh();
 }
@@ -208,6 +215,8 @@ void SceneController::refresh()
     }
     if (order_ != nextOrder) { order_ = nextOrder; rearrange(); }
     const bool studio = obs_frontend_preview_program_mode_active();
+    studio_->setEnabled(true);
+    studio_->setText(studio ? "Studio Mode: ON — click to disable" : "Studio Mode: OFF — click to enable");
     Source program(obs_frontend_get_current_scene());
     Source preview(studio ? obs_frontend_get_current_preview_scene() : nullptr);
     const auto programId = sourceId(program.ptr), previewId = sourceId(preview.ptr);
@@ -228,7 +237,7 @@ void SceneController::refresh()
     transition_->setEnabled(studio && !transitionPending_ && preview.ptr && !hidden.contains(previewId));
     status_->setText(studio ? (order_.isEmpty() ? "No production scenes available." :
                      "Single-click: Preview • Double-click: transition • Red: Program • Gold: Preview") :
-                     "Enable Studio Mode to use single-click Preview and double-click transition.");
+                     "Studio Mode is OFF. Click the Studio Mode button to enable Preview selection and double-click transitions.");
 }
 
 void SceneController::rearrange()

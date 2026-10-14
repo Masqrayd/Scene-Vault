@@ -41,6 +41,7 @@ private:
     QGridLayout *grid_;
     QLabel *status_;
     QPushButton *transition_;
+    QPushButton *studio_;
     QHash<QString, SceneButton *> buttons_;
     QStringList order_;
     bool available_ = true;
