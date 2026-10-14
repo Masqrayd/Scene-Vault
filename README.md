@@ -8,9 +8,20 @@ through **Tools > Scene Vault**.
 
 ## Status
 
-Version 0.1.0 has successfully compiled on Windows against OBS 32.2.2. Download the\nWindows artifact from [the successful build](https://github.com/Masqrayd/Scene-Vault/actions/runs/38013457530).\nThe package contains the DLL, installation scripts, and quick-start guide. A real\nOBS 32.2.2 session is still required to validate runtime behavior. See\n`docs/VALIDATION.md` for completed checks and remaining acceptance checks.
+Version 0.2.0 adds **Tools > Masqrayd Scene Controller**: a floating scene-button
+window with optional Always on top, single-click Preview, and double-click
+transition. The Windows package is built by GitHub Actions. Windows runtime
+validation in OBS is still required. See `docs/VALIDATION.md`.
 
 ## Features
+
+- Floating scene controller shows production scenes, excluding saved vault membership.
+- Single-click selects Preview; double-click transitions the clicked scene using OBS's active transition.
+- Studio Mode is required; the window includes an Enable Studio Mode button.
+- Optional Always on top, adjustable columns/button height, saved position and size.
+- Program and Preview labels and colored borders track OBS selection.
+- Scene renaming, ordering, visibility, and collection changes update the buttons.
+- Vaulted scenes stay excluded even while temporarily shown for editing or recovery.
 
 - Search all scenes, or show only scenes in the vault.
 - Hide scenes without selecting them in OBS's production scene list.
@@ -52,7 +63,7 @@ plugins that alter the same list should not be assumed compatible without testin
    `CMakeLists.txt` and `buildspec.json` must be at the root, not inside another folder.
 3. Open **Actions > Build Scene Vault for Windows**. The initial push starts the build;
    **Run workflow** can start another one.
-4. Download **Scene-Vault-0.1.0-Windows-x64** from the successful run's Artifacts section.
+4. Download **Scene-Vault-0.2.0-Windows-x64** from the successful run's Artifacts section.
 5. Extract it, close OBS, and follow `QUICK_START.md`.
 
 The workflow downloads the official OBS 32.2.2 sources and the matching official

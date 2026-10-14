@@ -18,6 +18,28 @@ compiled package. It checks that OBS is closed and retains an existing plugin as
 a backup. Portable OBS installations need an explicitly selected plugin location
 and are not covered by the default installer path.
 
+## Floating scene controller
+
+1. Open **Tools > Masqrayd Scene Controller**.
+2. Move and resize the window on your preferred monitor.
+3. Check **Always on top** to keep it above ordinary application windows.
+4. Enable Studio Mode in OBS, or use **Enable Studio Mode** in the controller.
+5. Single-click a scene button to select Preview. Double-click to transition it
+   to Program using your OBS transition. **Transition Preview** is also available.
+6. Adjust **Columns** and **Height** for your preferred button layout.
+
+Program has a red border, Preview a gold border, and both a purple border; buttons
+also show text labels. Hidden scenes never appear in this controller, even if
+Scene Vault temporarily reveals them for editing. Permanently restoring a scene
+makes its button available again. Studio Mode off disables scene switching here.
+Closing the window hides it; reopen it through Tools. Position, size, button
+layout, and Always on top are saved. The controller closes with OBS. Exclusive
+full-screen applications and other topmost windows may cover an Always on top window.
+
+This 0.2.0 package updates the existing Scene Vault DLL. Close OBS and replace
+that DLL/folder; keep only one Scene Vault installation. Your saved hidden-scene
+membership remains in the scene collection.
+
 ## Hide secondary scenes
 
 1. Select your main production scene in OBS. If Studio Mode is on, move Preview

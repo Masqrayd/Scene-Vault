@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QPoint>
 
+class SceneController;
 class QDialog;
 class QLineEdit;
 class QCheckBox;
@@ -23,6 +24,7 @@ public:
     explicit SceneVault(QMainWindow *window);
     ~SceneVault() override;
     void showManager();
+    void showController();
     void refresh();
     void saveLoad(obs_data_t *data, bool saving);
     void frontendEvent(obs_frontend_event event);
@@ -55,6 +57,8 @@ private:
     QPointer<QMainWindow> window_;
     QPointer<QListWidget> sceneList_;
     QPointer<QDialog> manager_;
+    SceneController *controller_ = nullptr;
+    QPointer<QAction> controllerAction_;
     QTreeWidget *tree_ = nullptr;
     QLineEdit *search_ = nullptr;
     QCheckBox *hiddenOnly_ = nullptr;

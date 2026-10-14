@@ -1,3 +1,49 @@
+# Validation record: Scene Vault 0.2.0 + Scene Controller
+
+## Local results for 0.2.0
+
+- Native plugin and all three test executables compiled on Linux with GCC 13.3,
+  Qt 6.4.2, and OBS 30.0.2 headers/libraries.
+- `controller-behavior` and `vault-state` passed. Controller tests use real Qt
+  mouse events and a simulated frontend/source contract without a renderer.
+- Verified: single-click Preview only; one double-click transition; second release
+  preserves Preview/Program swap; duplicate gesture guard; hidden membership;
+  restore/hide updates; rename retains UUID/button identity; scene deletion;
+  collection-change click guard; Program highlight; unowned floating window;
+  Always on top flag toggle, persistence, and restoration.
+- The real-libobs `vault-integration` executable compiled but could not run here:
+  libobs needs an X display, and this environment blocks Xvfb's listening sockets.
+  GitHub's Linux workflow runs the complete suite under Xvfb.
+- Windows build is pending approval to publish the feature branch. No Windows
+  runtime, exclusive full-screen, or monitor-position behavior has been validated.
+
+## New acceptance checks
+
+- Compile on Windows against official OBS 32.2.2.
+- Qt mouse test: one click selects Preview without transition; double-click triggers
+  exactly one transition; its final release does not undo OBS's Preview/Program swap.
+- Confirm vaulted scenes remain absent; production scene renaming retains UUID identity.
+- Studio Mode off and collection switching disable scene buttons.
+- Always on top toggles the Qt window flag and is saved with geometry.
+- Existing Scene Vault tests must continue passing.
+
+## Windows runtime checks
+
+1. Open Tools > Masqrayd Scene Controller in OBS 32.2.2.
+2. Single-click then double-click scenes using Fade, Cut, and a scene transition override.
+3. Check Preview/Program swaps and repeated double-clicks; verify Program switches once.
+4. Toggle Always on top and place a browser above/below the controller. Move it across monitors.
+5. Change columns/height, close/reopen, restart OBS, and disconnect a monitor.
+6. Hide/restore/rename/reorder scenes and switch scene collections.
+7. Confirm temporarily editing a vaulted scene never adds its controller button.
+8. Shut down OBS with the controller open; verify clean exit.
+
+A successful build and simulated frontend tests do not establish Windows runtime behavior.
+
+---
+
+Historical 0.1.0 validation follows; these results apply to the prior version.
+
 # Validation record: Scene Vault 0.1.0
 
 ## Completed
