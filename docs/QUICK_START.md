@@ -26,17 +26,17 @@ and are not covered by the default installer path.
 4. Enable Studio Mode in OBS, or use **Studio Mode: OFF — click to enable** in the controller.
 5. Single-click a scene button to select Preview. Double-click to transition it
    to Program using your OBS transition. **Send Preview to Program** is also available.
-6. Adjust **Columns** and **Height** for your preferred button layout.
+6. Resize the window: columns, button size, and wrapped text adjust automatically.
 
-Program has a red border, Preview a gold border, and both a purple border; buttons
-also show text labels. Hidden scenes never appear in this controller, even if
+Program fills its button red and Preview fills its button gold; scene buttons
+show only scene names. If the same scene is in both, Program red takes priority. Hidden scenes never appear in this controller, even if
 Scene Vault temporarily reveals them for editing. Permanently restoring a scene
 makes its button available again. Studio Mode off disables scene switching here.
 Closing the window hides it; reopen it through Tools. Position, size, button
 layout, and Always on top are saved. The controller closes with OBS. Exclusive
 full-screen applications and other topmost windows may cover an Always on top window.
 
-This 0.2.2 package updates the existing Scene Vault DLL. Close OBS and replace
+This 0.2.3 package updates the existing Scene Vault DLL. Close OBS and replace
 that DLL/folder; keep only one Scene Vault installation. Your saved hidden-scene
 membership remains in the scene collection.
 
@@ -86,3 +86,7 @@ Always on top setting. Closing it during a session keeps it closed until the
 next OBS launch; changing collections does not reopen it. Uncheck the option
 to return to opening it manually through Tools. Startup does not change Studio
 Mode or switch scenes.
+
+Scene names and bottom action labels wrap and scale with the window. On narrow
+windows the bottom actions stack vertically. Very small windows scroll the scene
+grid rather than reducing buttons below a usable size.

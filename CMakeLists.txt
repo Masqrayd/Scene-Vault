@@ -5,7 +5,7 @@ option(SCENE_VAULT_SYSTEM_BUILD "Use installed OBS and Qt packages (Linux test b
 if(NOT SCENE_VAULT_SYSTEM_BUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCOPE)
 endif()
-project(scene-vault VERSION 0.2.2 LANGUAGES C CXX)
+project(scene-vault VERSION 0.2.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

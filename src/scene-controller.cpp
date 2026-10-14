@@ -12,7 +12,10 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
-#include <QSpinBox>
+#include <QStylePainter>
+#include <QStyleOptionButton>
+#include <QTextLayout>
+#include <QResizeEvent>
 #include <QStyle>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -34,9 +37,49 @@ public:
     using QPushButton::QPushButton;
     std::function<void()> doubleClick;
 protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStyleOptionButton option;
+        initStyleOption(&option);
+        option.text.clear();
+        QStylePainter painter(this);
+        painter.drawControl(QStyle::CE_PushButton, option);
+        const QRect area = rect().adjusted(10, 6, -10, -6);
+        QFont fitted = font();
+        const int largest = qBound(10, qRound(qMin(width() / 10.0, height() / 3.0)), 24);
+        QTextLayout textLayout;
+        QTextOption textOption;
+        textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        textOption.setAlignment(Qt::AlignHCenter);
+        textLayout.setTextOption(textOption);
+        qreal total = 0;
+        for (int pixels = largest; pixels >= 8; --pixels) {
+            fitted.setPixelSize(pixels);
+            textLayout.setFont(fitted);
+            textLayout.setText(text());
+            textLayout.beginLayout();
+            total = 0;
+            while (true) {
+                auto line = textLayout.createLine();
+                if (!line.isValid()) break;
+                line.setLineWidth(qMax(1, area.width()));
+                line.setPosition(QPointF(0, total));
+                total += line.height();
+            }
+            textLayout.endLayout();
+            if (total <= area.height()) break;
+            if (pixels > 8) textLayout.clearLayout();
+        }
+        const bool live = property("program").toBool();
+        const bool queued = property("preview").toBool();
+        painter.setPen(isEnabled() && (live || queued || objectName() == "controllerSendPreview")
+                       ? QColor("#161616") : palette().color(isEnabled() ? QPalette::Active : QPalette::Disabled, QPalette::ButtonText));
+        painter.setClipRect(area);
+        textLayout.draw(&painter, QPointF(area.left(), area.top() + qMax(0.0, (area.height() - total) / 2)));
+    }
     void mouseDoubleClickEvent(QMouseEvent *event) override
     {
-        if (event->button() == Qt::LeftButton && isEnabled()) {
+        if (event->button() == Qt::LeftButton && isEnabled() && doubleClick) {
             // Consume the second press and its release: no trailing clicked signal
             // may change Preview after OBS swaps Preview and Program.
             setDown(false);
@@ -71,58 +114,52 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     // SceneVault explicitly owns/deletes it and hides it during OBS shutdown.
     setObjectName("masqraydSceneController");
     setWindowTitle("Masqrayd Scene Controller");
-    setMinimumSize(320, 240);
+    setMinimumSize(220, 220);
     resize(600, 430);
     auto *layout = new QVBoxLayout(this);
     auto *toolbar = new QHBoxLayout;
     onTop_ = new QCheckBox("Always on top", this);
     onTop_->setObjectName("controllerAlwaysOnTop");
-    columns_ = new QSpinBox(this);
-    columns_->setObjectName("controllerColumns");
-    columns_->setRange(1, 6);
-    columns_->setValue(settings_->value("columns", 3).toInt());
-    buttonHeight_ = new QSpinBox(this);
-    buttonHeight_->setObjectName("controllerButtonHeight");
-    buttonHeight_->setRange(48, 160);
-    buttonHeight_->setValue(settings_->value("buttonHeight", 80).toInt());
     toolbar->addWidget(onTop_);
     toolbar->addStretch();
-    toolbar->addWidget(new QLabel("Columns", this));
-    toolbar->addWidget(columns_);
-    toolbar->addWidget(new QLabel("Height", this));
-    toolbar->addWidget(buttonHeight_);
     layout->addLayout(toolbar);
     openOnStartup_ = new QCheckBox("Open when OBS starts", this);
     openOnStartup_->setObjectName("controllerOpenOnStartup");
     openOnStartup_->setChecked(settings_->value("openOnStartup", false).toBool());
     layout->addWidget(openOnStartup_);
     connect(openOnStartup_, &QCheckBox::toggled, this, [this] { saveSettings(); });
-    auto *scroll = new QScrollArea(this);
-    scroll->setWidgetResizable(true);
-    auto *panel = new QWidget(scroll);
+    scroll_ = new QScrollArea(this);
+    scroll_->setWidgetResizable(true);
+    scroll_->viewport()->installEventFilter(this);
+    auto *panel = new QWidget(scroll_);
     grid_ = new QGridLayout(panel);
     grid_->setAlignment(Qt::AlignTop);
-    scroll->setWidget(panel);
-    layout->addWidget(scroll, 1);
-    auto *bottom = new QHBoxLayout;
-    studio_ = new QPushButton("Studio Mode: OFF — click to enable", this);
+    grid_->setContentsMargins(4, 4, 4, 4);
+    scroll_->setWidget(panel);
+    layout->addWidget(scroll_, 1);
+    bottom_ = new QBoxLayout(QBoxLayout::LeftToRight);
+    studio_ = new SceneButton("Studio Mode: OFF — click to enable", this);
     studio_->setObjectName("controllerStudioMode");
     studio_->setAutoDefault(false);
-    transition_ = new QPushButton("Send Preview to Program", this);
+    transition_ = new SceneButton("Send Preview to Program", this);
     transition_->setAutoDefault(false);
     transition_->setObjectName("controllerSendPreview");
     transition_->setToolTip("Send the current Preview scene to live Program using your OBS transition. OBS may swap Preview and Program afterward.");
-    bottom->addWidget(studio_);
-    bottom->addWidget(transition_);
-    layout->addLayout(bottom);
+    studio_->setMinimumSize(0, 40);
+    transition_->setMinimumSize(0, 40);
+    studio_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    transition_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    bottom_->addWidget(studio_);
+    bottom_->addWidget(transition_);
+    layout->addLayout(bottom_);
     status_ = new QLabel(this);
     status_->setObjectName("controllerStatus");
     status_->setWordWrap(true);
+    status_->setToolTip("Red: Program (live). Gold: Preview. If both are the same scene, red takes priority.");
     layout->addWidget(status_);
-    setStyleSheet("QPushButton[sceneButton=\"true\"] { padding: 8px; font-size: 14px; border: 2px solid #777; border-radius: 6px; }"
-                  "QPushButton[sceneButton=\"true\"][preview=\"true\"] { border-color: #e6b84a; }"
-                  "QPushButton[sceneButton=\"true\"][program=\"true\"] { border-color: #ea6565; }"
-                  "QPushButton[sceneButton=\"true\"][preview=\"true\"][program=\"true\"] { border-color: #c487ed; }"
+    setStyleSheet("QPushButton[sceneButton=\"true\"] { padding: 8px; border: 2px solid #777; border-radius: 6px; }"
+                  "QPushButton[sceneButton=\"true\"][preview=\"true\"] { background-color: #e6b84a; color: #161616; border-color: #e6b84a; }"
+                  "QPushButton[sceneButton=\"true\"][program=\"true\"] { background-color: #ea6565; color: #161616; border-color: #ea6565; }"
                   "QPushButton#controllerSendPreview:enabled { background-color: #e6b84a; color: #161616; border: 2px solid #e6b84a; border-radius: 4px; padding: 6px; }"
                   "QPushButton#controllerSendPreview:disabled { color: #888; border: 2px solid #888; border-radius: 4px; padding: 6px; }");
     connect(studio_, &QPushButton::clicked, this, [this] {
@@ -132,8 +169,6 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
         QTimer::singleShot(100, this, &SceneController::refresh);
     });
     connect(transition_, &QPushButton::clicked, this, &SceneController::transitionPreview);
-    connect(columns_, qOverload<int>(&QSpinBox::valueChanged), this, [this] { rearrange(); saveSettings(); });
-    connect(buttonHeight_, qOverload<int>(&QSpinBox::valueChanged), this, [this] { rearrange(); saveSettings(); });
     connect(onTop_, &QCheckBox::toggled, this, [this](bool enabled) {
         const auto geometry = saveGeometry();
         const bool visible = isVisible();
@@ -227,7 +262,8 @@ void SceneController::refresh()
     if (order_ != nextOrder) { order_ = nextOrder; rearrange(); }
     const bool studio = obs_frontend_preview_program_mode_active();
     studio_->setEnabled(true);
-    studio_->setText(studio ? "Studio Mode: ON — click to disable" : "Studio Mode: OFF — click to enable");
+    studio_->setText(studio ? "Studio Mode: ON" : "Studio Mode: OFF");
+    studio_->setToolTip(studio ? "Click to disable Studio Mode" : "Click to enable Studio Mode");
     Source program(obs_frontend_get_current_scene());
     Source preview(studio ? obs_frontend_get_current_preview_scene() : nullptr);
     const auto programId = sourceId(program.ptr), previewId = sourceId(preview.ptr);
@@ -235,9 +271,7 @@ void SceneController::refresh()
         auto *button = buttons_.value(id);
         const bool live = id == programId, queued = id == previewId;
         const auto name = button->property("sceneName").toString();
-        const auto label = button->fontMetrics().elidedText(name, Qt::ElideRight, qMax(32, button->width() - 24));
-        button->setText(label +
-                        (live && queued ? "\nPROGRAM + PREVIEW" : live ? "\nPROGRAM" : queued ? "\nPREVIEW" : ""));
+        button->setText(name);
         const bool changed = button->property("program").toBool() != live || button->property("preview").toBool() != queued;
         button->setProperty("program", live);
         button->setProperty("preview", queued);
@@ -247,22 +281,40 @@ void SceneController::refresh()
     }
     transition_->setEnabled(studio && !transitionPending_ && preview.ptr && !hidden.contains(previewId));
     status_->setText(studio ? (order_.isEmpty() ? "No production scenes available." :
-                     "Single-click: Preview • Double-click: transition • Red: Program • Gold: Preview") :
+                     "Click: Preview • Double-click: Program") :
                      "Studio Mode is OFF. Click the Studio Mode button to enable Preview selection and double-click transitions.");
 }
 
 void SceneController::rearrange()
 {
+    if (!scroll_ || !bottom_) return;
+    bottom_->setDirection(width() < 420 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
+    const int columns = qBound(1, scroll_->viewport()->width() / 160, 12);
+    const int rows = qMax(1, (order_.size() + columns - 1) / columns);
+    const int cellWidth = qMax(1, (scroll_->viewport()->width() - 8 - (columns - 1) * grid_->spacing()) / columns);
+    const int roomHeight = (scroll_->viewport()->height() - 8 - (rows - 1) * grid_->spacing()) / rows;
+    const int cellHeight = qBound(48, qMin(qRound(cellWidth * 0.55), roomHeight), 112);
+    if (columns == layoutColumns_ && cellHeight == layoutHeight_ && order_ == layoutOrder_) return;
+    layoutColumns_ = columns;
+    layoutHeight_ = cellHeight;
+    layoutOrder_ = order_;
     while (auto *item = grid_->takeAt(0)) delete item;
-    for (int col = 0; col < 6; ++col) grid_->setColumnStretch(col, col < columns_->value() ? 1 : 0);
+    for (int col = 0; col < 12; ++col) grid_->setColumnStretch(col, col < columns ? 1 : 0);
     for (int i = 0; i < order_.size(); ++i) {
         auto *button = buttons_.value(order_[i]);
-        button->setMinimumHeight(buttonHeight_->value());
+        button->setFixedHeight(cellHeight);
         button->setMinimumWidth(0);
-        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-        grid_->addWidget(button, i / columns_->value(), i % columns_->value());
+        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        grid_->addWidget(button, i / columns, i % columns);
         button->show();
     }
+}
+
+bool SceneController::eventFilter(QObject *watched, QEvent *event)
+{
+    if (scroll_ && watched == scroll_->viewport() && event->type() == QEvent::Resize)
+        QTimer::singleShot(0, this, &SceneController::rearrange);
+    return QDialog::eventFilter(watched, event);
 }
 
 bool SceneController::selectPreview(const QString &id)
@@ -301,11 +353,9 @@ void SceneController::saveSettings()
     settings_->setValue("geometry", saveGeometry());
     settings_->setValue("alwaysOnTop", onTop_->isChecked());
     settings_->setValue("openOnStartup", openOnStartup_->isChecked());
-    settings_->setValue("columns", columns_->value());
-    settings_->setValue("buttonHeight", buttonHeight_->value());
     settings_->sync();
 }
 
 void SceneController::closeEvent(QCloseEvent *event) { saveSettings(); QDialog::closeEvent(event); }
 void SceneController::moveEvent(QMoveEvent *event) { QDialog::moveEvent(event); saveSettings(); }
-void SceneController::resizeEvent(QResizeEvent *event) { QDialog::resizeEvent(event); saveSettings(); }
+void SceneController::resizeEvent(QResizeEvent *event) { QDialog::resizeEvent(event); QTimer::singleShot(0, this, &SceneController::rearrange); saveSettings(); }

@@ -9,7 +9,8 @@ class QCheckBox;
 class QGridLayout;
 class QLabel;
 class QPushButton;
-class QSpinBox;
+class QScrollArea;
+class QBoxLayout;
 class QSettings;
 class SceneButton;
 
@@ -27,6 +28,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 private:
     bool selectPreview(const QString &id);
     void transitionScene(const QString &id);
@@ -38,8 +40,11 @@ private:
     QSettings *settings_;
     QCheckBox *onTop_;
     QCheckBox *openOnStartup_;
-    QSpinBox *columns_;
-    QSpinBox *buttonHeight_;
+    QScrollArea *scroll_;
+    QBoxLayout *bottom_;
+    int layoutColumns_ = 0;
+    int layoutHeight_ = 0;
+    QStringList layoutOrder_;
     QGridLayout *grid_;
     QLabel *status_;
     QPushButton *transition_;
