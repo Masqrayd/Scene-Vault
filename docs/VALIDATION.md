@@ -1,3 +1,165 @@
+# Validation record: Scene Vault 0.2.5 borderless controller
+
+- Removed native title bar/frame using Qt FramelessWindowHint.
+- Always on top and Open when OBS starts are checkable, saved context-menu actions;
+  their checkbox rows are removed. Existing saved preference keys remain compatible.
+- Right-click on controller/background/buttons exposes options and Close controller.
+- Drag background or Ctrl-drag anywhere to move; edge/corner drags resize.
+- Local tests verify no checkbox widgets, frameless flag, actual context-menu action
+  persistence, Ctrl-drag movement without scene selection, and corner size changes.
+- Compact/wide rendered layouts inspected; existing fixed columns and text fitting retained.
+- All three Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38508512192
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38508512196
+- ZIP checksum/integrity, DLL entry points, installer files, and borderless guide
+  verified. SHA-256:
+  `7c129a5f3cdde329b35e924b8a07b22f408a55d30fceffe45cc46978bf1334ce`.
+- Actual Windows OBS runtime and multi-monitor/DPI drag testing remain required.
+
+---
+
+# Validation record: Scene Vault 0.2.4 preserved columns and text fitting
+
+- Default scene layout now keeps two columns as the window narrows. A saved
+  Scene columns context-menu setting supports 1–6 columns without width-driven reflow.
+- Footer buttons remain side by side. Scene and footer labels wrap and shrink
+  inside their narrowing buttons, rather than using stacking to keep text large.
+- Fitter uses width and height with compact padding; scene buttons can shrink to
+  30px high while fonts scale down as needed. Existing colors/startup/topmost retained.
+- Local build and state/controller tests passed. New rendered-ink pixel comparisons
+  verify actual smaller text for scene, Studio Mode, and Send Preview to Program.
+- Tests verify fixed two-column and side-by-side footer geometry at narrow width.
+- Narrow/wide rendered layouts inspected and compared against user-provided examples.
+- All three Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274971
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38507274963
+- ZIP integrity/checksum, DLL entry points, installer files, and fixed-column guide
+  verified. SHA-256:
+  `db677f99be990592d173f83d3349487f7889cff2b0277c376ae13f8b5fe06124`.
+- Actual Windows OBS runtime testing remains required.
+
+---
+
+# Validation record: Scene Vault 0.2.3 responsive controller
+
+- Scene buttons show scene names only. Program fills red (#ea6565), Preview fills
+  gold (#e6b84a); red takes priority when both target the same scene.
+- Removed manual Columns/Height controls. Grid columns and button heights adapt
+  to viewport dimensions and scene count. Text wraps at word boundaries or within
+  long words and scales to fit. Narrow windows stack bottom actions vertically.
+- Existing click/double-click, startup preference, and Always on top behavior retained.
+- Local build and controller/state tests passed. New tests inspect red/gold pixels,
+  name-only labels, long-name retention, and narrow/wide grid/action positions.
+- Wide and compact (240 x 320) rendered layouts inspected with a long scene name.
+- All three GitHub Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033296
+- Windows OBS 32.2.2 build/package passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38506033334
+- Downloaded ZIP checksum/integrity, DLL entry points, installation files, and
+  responsive-layout guide verified. SHA-256:
+  `be26b643c6120c898b2f7f080076ea2b942b019fc68969c6e5d352e3fa1c6c60`.
+- Real Windows OBS runtime testing remains required. Tiny windows use scrolling
+  when the scene grid cannot fit without making buttons too small.
+
+---
+
+# Validation record: Scene Vault 0.2.2 startup option
+
+- Added saved Open when OBS starts checkbox, off by default.
+- Controller opens once on FINISHED_LOADING when opted in, restoring its saved
+  layout and Always on top setting. It does not change Studio Mode or scenes.
+- Checkbox persistence and disabling tested locally; native plugin compiled.
+- All three Linux suites passed, including integration tests verifying startup
+  launch, opt-out, and no reopening on collection changes/repeated load events:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456049
+- Windows OBS 32.2.2 build and packaging passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38504456054
+- ZIP checksum/integrity, DLL entry points, installation files, and startup guide
+  verified. SHA-256:
+  `38a3d28edca5d53011e1b4a5ea3639b3159246fe9508b717448a933990cd1617`.
+- Rendered controller with new checkbox inspected. Real Windows OBS runtime
+  startup testing remains required.
+
+---
+
+# Validation record: Scene Vault 0.2.1 controller correction
+
+- Studio Mode control now reports ON/OFF and toggles with one click. The previous
+  Enable button always requested ON and appeared unresponsive when already on.
+- Transition Preview is now Send Preview to Program, colored #e6b84a to match Preview.
+- Native Linux build and local controller/state suites passed. Toggle tests verify
+  enabling, disabling, and re-enabling, with label updates.
+- All three GitHub Linux suites passed:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38503890879
+- Windows OBS 32.2.2 build and packaging succeeded:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38503890895
+- Downloaded ZIP checksum, integrity, required installation files, and DLL entry
+  points verified. SHA-256:
+  `38c330b50666c9c2d463119568248431ad6fc0172bf687491256c34ee4990466`.
+- Inspected the rendered controller layout with the ON label and yellow action.
+- Actual Windows OBS runtime testing of this update remains required.
+
+---
+
+# Validation record: Scene Vault 0.2.0 + Scene Controller
+
+## Local results for 0.2.0
+
+- Native plugin and all three test executables compiled on Linux with GCC 13.3,
+  Qt 6.4.2, and OBS 30.0.2 headers/libraries.
+- `controller-behavior` and `vault-state` passed. Controller tests use real Qt
+  mouse events and a simulated frontend/source contract without a renderer.
+- Verified: single-click Preview only; one double-click transition; second release
+  preserves Preview/Program swap; duplicate gesture guard; hidden membership;
+  restore/hide updates; rename retains UUID/button identity; scene deletion;
+  collection-change click guard; Program highlight; unowned floating window;
+  Always on top flag toggle, persistence, and restoration.
+- The real-libobs `vault-integration` executable compiled but could not run here:
+  libobs needs an X display, and this environment blocks Xvfb's listening sockets.
+  GitHub's Linux workflow runs the complete suite under Xvfb.
+- GitHub's Linux workflow passed all three suites, including real-libobs integration:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595737
+- Windows x64 compilation and packaging succeeded against official OBS 32.2.2:
+  https://github.com/Masqrayd/Scene-Vault/actions/runs/38502595761
+- Built source commit: `b3575b3ae6816441b072e7e8eac61c4b912de44e`.
+- Downloaded artifact integrity and required contents verified: DLL, PDB,
+  installation/uninstallation scripts, and quick-start guide.
+- Artifact SHA-256 matches GitHub's digest:
+  `e1574dfc7ff4066b2d5fba20ff105592548bd9668243d75380907840e927b14c`.
+- DLL exports load/unload/post-load entry points and links to OBS, the OBS
+  frontend API, Qt6, and the Windows C/C++ runtime.
+- Windows runtime, exclusive full-screen, and monitor-position behavior still
+  require validation in a real OBS session.
+
+## New acceptance checks
+
+- Compile on Windows against official OBS 32.2.2.
+- Qt mouse test: one click selects Preview without transition; double-click triggers
+  exactly one transition; its final release does not undo OBS's Preview/Program swap.
+- Confirm vaulted scenes remain absent; production scene renaming retains UUID identity.
+- Studio Mode off and collection switching disable scene buttons.
+- Always on top toggles the Qt window flag and is saved with geometry.
+- Existing Scene Vault tests must continue passing.
+
+## Windows runtime checks
+
+1. Open Tools > Masqrayd Scene Controller in OBS 32.2.2.
+2. Single-click then double-click scenes using Fade, Cut, and a scene transition override.
+3. Check Preview/Program swaps and repeated double-clicks; verify Program switches once.
+4. Toggle Always on top and place a browser above/below the controller. Move it across monitors.
+5. Change columns/height, close/reopen, restart OBS, and disconnect a monitor.
+6. Hide/restore/rename/reorder scenes and switch scene collections.
+7. Confirm temporarily editing a vaulted scene never adds its controller button.
+8. Shut down OBS with the controller open; verify clean exit.
+
+A successful build and simulated frontend tests do not establish Windows runtime behavior.
+
+---
+
+Historical 0.1.0 validation follows; these results apply to the prior version.
+
 # Validation record: Scene Vault 0.1.0
 
 ## Completed

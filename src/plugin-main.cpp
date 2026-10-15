@@ -9,13 +9,13 @@ static SceneVault *vault = nullptr;
 MODULE_EXPORT const char *obs_module_name(void) { return "Scene Vault"; }
 MODULE_EXPORT const char *obs_module_description(void)
 {
-    return "Hide secondary scenes from the Scenes dock while preserving nested uses.";
+    return "Hide secondary scenes from the Scenes dock while preserving nested uses; floating scene buttons with double-click transitions.";
 }
 MODULE_EXPORT const char *obs_module_author(void) { return "Masqrayd"; }
 
 bool obs_module_load(void)
 {
-    blog(LOG_INFO, "[Scene Vault] Loading version 0.1.0");
+    blog(LOG_INFO, "[Scene Vault] Loading version 0.2.5");
     return true;
 }
 

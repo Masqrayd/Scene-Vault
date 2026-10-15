@@ -1,4 +1,7 @@
 #include "scene-vault.hpp"
+#include "scene-controller.hpp"
+#include <QStandardPaths>
+#include <util/bmem.h>
 #include <obs-module.h>
 #include <QAction>
 #include <QApplication>
@@ -45,11 +48,16 @@ SceneVault::SceneVault(QMainWindow *window) : QObject(window), window_(window)
     connect(&timer_, &QTimer::timeout, this, &SceneVault::refresh);
     timer_.start(500);
     bindSceneList();
+    controllerAction_ = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction("Masqrayd Scene Controller…"));
+    if (controllerAction_) controllerAction_->setObjectName("masqraydSceneControllerAction");
+    if (controllerAction_) connect(controllerAction_.data(), &QAction::triggered, this, &SceneVault::showController);
 }
 
 SceneVault::~SceneVault()
 {
     shutdown();
+    delete controller_;
+    if (controllerAction_) delete controllerAction_.data();
     if (manager_) delete manager_.data();
     if (toolsAction_) delete toolsAction_.data();
 }
@@ -59,6 +67,7 @@ void SceneVault::shutdown()
     if (shuttingDown_) return;
     shuttingDown_ = true;
     timer_.stop();
+    if (controller_) { controller_->setAvailable(false); controller_->hide(); }
     if (removeAction_ && deleteProtected_) removeAction_->setEnabled(removeWasEnabled_);
     obs_frontend_remove_event_callback(eventCallback, this);
     obs_frontend_remove_save_callback(saveCallback, this);
@@ -137,6 +146,7 @@ void SceneVault::frontendEvent(obs_frontend_event event)
     if (shuttingDown_) return;
     if (event == OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING) {
         collectionChanging_ = true;
+        if (controller_) controller_->setAvailable(false);
         state_.resetSession();
         return;
     }
@@ -147,8 +157,15 @@ void SceneVault::frontendEvent(obs_frontend_event event)
         return;
     }
     if (event == OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED ||
-        event == OBS_FRONTEND_EVENT_FINISHED_LOADING) collectionChanging_ = false;
+        event == OBS_FRONTEND_EVENT_FINISHED_LOADING) {
+        collectionChanging_ = false;
+        if (controller_) controller_->setAvailable(true);
+    }
     refresh();
+    if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING && !startupHandled_) {
+        startupHandled_ = true;
+        if (SceneController::opensOnStartup(controllerSettingsPath())) showController();
+    }
 }
 
 void SceneVault::bindSceneList()
@@ -228,6 +245,7 @@ void SceneVault::refresh()
     bindSceneList();
     applyVisibility();
     updateDeleteProtection();
+    if (controller_) controller_->refresh();
     if (manager_ && manager_->isVisible()) rebuildManager();
 }
 
@@ -245,6 +263,25 @@ void SceneVault::updateDeleteProtection()
         deleteProtected_ = false;
         removeAction_->setEnabled(removeWasEnabled_);
     }
+}
+
+QString SceneVault::controllerSettingsPath() const
+{
+    char *configPath = obs_module_config_path("scene-controller.ini");
+    const QString path = configPath ? QString::fromUtf8(configPath) :
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/scene-controller.ini";
+    bfree(configPath);
+    return path;
+}
+
+void SceneVault::showController()
+{
+    if (shuttingDown_) return;
+    if (!controller_) {
+        controller_ = new SceneController(window_, [this] { return state_.hidden; }, controllerSettingsPath());
+        controller_->setAvailable(!collectionChanging_);
+    }
+    controller_->openController();
 }
 
 void SceneVault::showManager()

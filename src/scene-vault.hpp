@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QPoint>
 
+class SceneController;
 class QDialog;
 class QLineEdit;
 class QCheckBox;
@@ -23,6 +24,7 @@ public:
     explicit SceneVault(QMainWindow *window);
     ~SceneVault() override;
     void showManager();
+    void showController();
     void refresh();
     void saveLoad(obs_data_t *data, bool saving);
     void frontendEvent(obs_frontend_event event);
@@ -35,6 +37,7 @@ private:
     static void eventCallback(obs_frontend_event event, void *data);
     static void saveCallback(obs_data_t *data, bool saving, void *opaque);
     void bindSceneList();
+    QString controllerSettingsPath() const;
     void applyVisibility();
     void updateDeleteProtection();
     void rebuildManager();
@@ -55,6 +58,8 @@ private:
     QPointer<QMainWindow> window_;
     QPointer<QListWidget> sceneList_;
     QPointer<QDialog> manager_;
+    SceneController *controller_ = nullptr;
+    QPointer<QAction> controllerAction_;
     QTreeWidget *tree_ = nullptr;
     QLineEdit *search_ = nullptr;
     QCheckBox *hiddenOnly_ = nullptr;
@@ -66,6 +71,7 @@ private:
     VaultState state_;
     QSet<QListWidgetItem *> hiddenItems_;
     bool shuttingDown_ = false;
+    bool startupHandled_ = false;
     bool collectionChanging_ = false;
     bool refreshing_ = false;
     bool deleteProtected_ = false;
