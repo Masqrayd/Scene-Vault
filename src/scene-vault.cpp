@@ -49,6 +49,7 @@ SceneVault::SceneVault(QMainWindow *window) : QObject(window), window_(window)
     timer_.start(500);
     bindSceneList();
     controllerAction_ = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction("Masqrayd Scene Controller…"));
+    if (controllerAction_) controllerAction_->setObjectName("masqraydSceneControllerAction");
     if (controllerAction_) connect(controllerAction_.data(), &QAction::triggered, this, &SceneVault::showController);
 }
 

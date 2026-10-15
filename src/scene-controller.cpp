@@ -170,6 +170,7 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     });
     connect(transition_, &QPushButton::clicked, this, &SceneController::transitionPreview);
     connect(onTop_, &QAction::toggled, this, [this](bool enabled) {
+        if (property("masqraydStacked").toBool()) { saveSettings(); return; }
         const auto geometry = saveGeometry();
         const bool visible = isVisible();
         setWindowFlag(Qt::WindowStaysOnTopHint, enabled);
@@ -212,6 +213,9 @@ void SceneController::keepOnScreen()
 
 void SceneController::openController()
 {
+    if (property("masqraydStacked").toBool()) {
+        window()->showNormal(); window()->raise(); window()->activateWindow(); return;
+    }
     keepOnScreen();
     show();
     raise();
@@ -322,6 +326,7 @@ void SceneController::showOptions(const QPoint &globalPosition)
 {
     QMenu menu(this);
     menu.setObjectName("controllerOptionsMenu");
+    onTop_->setEnabled(!property("masqraydStacked").toBool());
     menu.addAction(onTop_);
     menu.addAction(openOnStartup_);
     auto *columns = menu.addMenu("Scene columns");
@@ -363,6 +368,7 @@ bool SceneController::eventFilter(QObject *watched, QEvent *event)
         showOptions(context->globalPos());
         return true;
     }
+    if (property("masqraydStacked").toBool()) return QDialog::eventFilter(watched, event);
     if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseMove ||
         event->type() == QEvent::MouseButtonRelease) {
         auto *mouse = static_cast<QMouseEvent *>(event);
@@ -446,7 +452,7 @@ void SceneController::saveSettings()
 {
     if (restoring_) return;
     QDir().mkpath(QFileInfo(settings_->fileName()).absolutePath());
-    settings_->setValue("geometry", saveGeometry());
+    if (!property("masqraydStacked").toBool()) settings_->setValue("geometry", saveGeometry());
     settings_->setValue("alwaysOnTop", onTop_->isChecked());
     settings_->setValue("openOnStartup", openOnStartup_->isChecked());
     settings_->setValue("fixedColumns", fixedColumns_);
