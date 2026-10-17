@@ -1,4 +1,5 @@
 #include "scene-controller.hpp"
+#include "fit-text-label.hpp"
 #include <obs-frontend-api.h>
 #include <QContextMenuEvent>
 #include <QCloseEvent>
@@ -37,6 +38,8 @@ QString sourceId(obs_source_t *source)
 class SceneButton final : public QPushButton {
 public:
     using QPushButton::QPushButton;
+    QSize sizeHint() const override { return {1, 1}; }
+    QSize minimumSizeHint() const override { return {1, 1}; }
     std::function<void()> doubleClick;
 protected:
     void paintEvent(QPaintEvent *) override
@@ -117,9 +120,11 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     setObjectName("masqraydSceneController");
     setWindowTitle("Masqrayd Scene Controller");
     fixedColumns_ = qBound(1, settings_->value("fixedColumns", 2).toInt(), 6);
-    setMinimumSize(220, 160);
+    setMinimumSize(160, 110);
     resize(600, 430);
     auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(4, 4, 4, 4);
+    layout->setSpacing(3);
     onTop_ = new QAction("Always on top", this);
     onTop_->setObjectName("controllerAlwaysOnTop");
     onTop_->setCheckable(true);
@@ -130,13 +135,17 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     connect(openOnStartup_, &QAction::toggled, this, [this] { saveSettings(); });
     scroll_ = new QScrollArea(this);
     scroll_->setWidgetResizable(true);
+    scroll_->setMinimumSize(0, 0);
+    scroll_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scroll_->viewport()->installEventFilter(this);
     auto *panel = new QWidget(scroll_);
     grid_ = new QGridLayout(panel);
     grid_->setAlignment(Qt::AlignTop);
     grid_->setContentsMargins(4, 4, 4, 4);
+    grid_->setSpacing(3);
     scroll_->setWidget(panel);
-    layout->addWidget(scroll_, 1);
+    layout->addWidget(scroll_, 8);
     bottom_ = new QBoxLayout(QBoxLayout::LeftToRight);
     studio_ = new SceneButton("Studio Mode: OFF — click to enable", this);
     studio_->setObjectName("controllerStudioMode");
@@ -145,18 +154,20 @@ SceneController::SceneController(QWidget *parent, std::function<QSet<QString>()>
     transition_->setAutoDefault(false);
     transition_->setObjectName("controllerSendPreview");
     transition_->setToolTip("Send the current Preview scene to live Program using your OBS transition. OBS may swap Preview and Program afterward.");
-    studio_->setMinimumSize(0, 40);
-    transition_->setMinimumSize(0, 40);
-    studio_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    transition_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    studio_->setMinimumSize(0, 18);
+    transition_->setMinimumSize(0, 18);
+    studio_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    transition_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    bottom_->setSpacing(3);
     bottom_->addWidget(studio_);
     bottom_->addWidget(transition_);
-    layout->addLayout(bottom_);
-    status_ = new QLabel(this);
+    layout->addLayout(bottom_, 2);
+    status_ = new FitTextLabel(this);
     status_->setObjectName("controllerStatus");
-    status_->setWordWrap(true);
+    status_->setMinimumHeight(9);
+    status_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
     status_->setToolTip("Red: Program (live). Gold: Preview. If both are the same scene, red takes priority.");
-    layout->addWidget(status_);
+    layout->addWidget(status_, 1);
     setStyleSheet("QPushButton[sceneButton=\"true\"] { padding: 8px; border: 2px solid #777; border-radius: 6px; }"
                   "QPushButton[sceneButton=\"true\"][preview=\"true\"] { background-color: #e6b84a; color: #161616; border-color: #e6b84a; }"
                   "QPushButton[sceneButton=\"true\"][program=\"true\"] { background-color: #ea6565; color: #161616; border-color: #ea6565; }"
@@ -305,7 +316,7 @@ void SceneController::rearrange()
     const int rows = qMax(1, (order_.size() + columns - 1) / columns);
     const int cellWidth = qMax(1, (scroll_->viewport()->width() - 8 - (columns - 1) * grid_->spacing()) / columns);
     const int roomHeight = (scroll_->viewport()->height() - 8 - (rows - 1) * grid_->spacing()) / rows;
-    const int cellHeight = qBound(30, qMin(qRound(cellWidth * 0.55), roomHeight), 112);
+    const int cellHeight = qBound(18, qMin(qRound(cellWidth * 0.55), roomHeight), 112);
     if (columns == layoutColumns_ && cellHeight == layoutHeight_ && order_ == layoutOrder_) return;
     layoutColumns_ = columns;
     layoutHeight_ = cellHeight;
