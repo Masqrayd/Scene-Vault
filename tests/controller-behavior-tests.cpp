@@ -10,6 +10,8 @@
 #include <QContextMenuEvent>
 #include <QTimer>
 #include <QMouseEvent>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 #include <cstdio>
@@ -152,6 +154,21 @@ int main(int argc, char **argv) {
         QTest::qWait(60);
         check(button->y() == find("main-id")->y(), "wide grid restores side-by-side buttons");
         if (!previewPath.isEmpty()) controller.grab().save(previewPath + ".wide.png");
+        // Height-only compression used to stop at 160px and force scene rows
+        // behind a scrollbar even when width was unchanged.
+        const auto tallSceneInk = inkPixels(button);
+        const auto tallSendInk = inkPixels(sendButton);
+        controller.resize(600, 110); QTest::qWait(60);
+        check(controller.height() == 110 && button->height() >= 18 && sendButton->height() >= 18,
+              "controller and footer shrink with height below the former minimum");
+        check(inkPixels(button) < tallSceneInk && inkPixels(sendButton) < tallSendInk,
+              "scene and footer text shrink when only height changes");
+        check(controller.rect().contains(sendButton->geometry()) && controller.rect().contains(studioButton->geometry()),
+              "short footer remains inside the controller");
+        check(controller.findChild<QScrollArea *>()->verticalScrollBar()->maximum() == 0,
+              "short scene rows fit without needing to scroll");
+        if (!previewPath.isEmpty()) controller.grab().save(previewPath + ".short.png");
+        controller.resize(600, 430); QTest::qWait(60);
         hidden.remove("camera-id"); controller.refresh();
         check(find("camera-id"), "restore makes button available");
         hidden.insert("camera-id"); controller.refresh();
